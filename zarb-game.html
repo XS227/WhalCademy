@@ -1,0 +1,1713 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>بازی یادگیری جدول ضرب | کلاس سوم</title>
+  <style>
+    :root{
+      --bg1:#0b1026;
+      --bg2:#121a3a;
+      --card: rgba(255,255,255,.08);
+      --card2: rgba(255,255,255,.12);
+      --stroke: rgba(255,255,255,.18);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --good: #31d0aa;
+      --warn: #ffcc66;
+      --bad: #ff6b8a;
+      --accent: #7c5cff;
+      --accent2:#00d4ff;
+      --shadow: 0 18px 55px rgba(0,0,0,.35);
+      --radius: 18px;
+      --radius2: 26px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans Arabic", "Vazirmatn", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--font);
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 70% 20%, rgba(124,92,255,.28), transparent 60%),
+        radial-gradient(900px 550px at 20% 10%, rgba(0,212,255,.22), transparent 60%),
+        radial-gradient(1000px 650px at 40% 90%, rgba(49,208,170,.18), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
+    }
+
+    /* subtle animated particles */
+    .bg-particles{
+      position:fixed; inset:0; pointer-events:none; opacity:.55;
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,1), rgba(0,0,0,.2) 65%, transparent 85%);
+    }
+    .dot{
+      position:absolute; width:10px; height:10px; border-radius:999px;
+      background:rgba(255,255,255,.12);
+      filter: blur(.2px);
+      animation: floaty 8s ease-in-out infinite;
+    }
+    @keyframes floaty{
+      0%,100%{transform: translateY(0) translateX(0) scale(1); opacity:.35}
+      50%{transform: translateY(-22px) translateX(12px) scale(1.15); opacity:.60}
+    }
+
+    .wrap{
+      max-width:1080px;
+      margin:0 auto;
+      padding:18px 16px 46px;
+    }
+
+    header{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+      margin-top:8px;
+      margin-bottom:14px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      background: linear-gradient(135deg, rgba(124,92,255,.22), rgba(0,212,255,.14));
+      border:1px solid var(--stroke);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .logo{
+      width:38px; height:38px; border-radius:12px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.25), transparent 40%),
+        linear-gradient(135deg, rgba(124,92,255,.9), rgba(0,212,255,.85));
+      display:grid; place-items:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .logo::after{
+      content:"✖";
+      font-size:18px;
+      opacity:.92;
+      transform: rotate(-8deg);
+      text-shadow: 0 8px 22px rgba(0,0,0,.35);
+    }
+    .brand h1{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+      line-height:1.2;
+    }
+    .brand p{
+      margin:0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.1;
+    }
+    .top-actions{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .pill{
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,.06);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      display:flex; align-items:center; gap:10px;
+      font-size:12px;
+      color:var(--muted);
+      user-select:none;
+    }
+    .pill b{color:var(--text); font-weight:700}
+
+    .grid{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    .card{
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+      border-radius: var(--radius2);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 14px 10px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(135deg, rgba(124,92,255,.14), rgba(0,212,255,.08));
+    }
+    .hd .ttl{
+      display:flex; align-items:center; gap:10px;
+      min-width:0;
+    }
+    .badge{
+      width:36px; height:36px;
+      border-radius:14px;
+      display:grid; place-items:center;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+    }
+    .badge span{
+      font-size:18px;
+      transform: translateY(-1px);
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,.35));
+    }
+    .hd h2{
+      margin:0;
+      font-size:14px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .hd small{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .card .bd{padding:14px}
+    .tabs{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .tab{
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius: 999px;
+      font-size:12px;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+    }
+    .tab:hover{transform: translateY(-1px)}
+    .tab.active{
+      background: linear-gradient(135deg, rgba(124,92,255,.35), rgba(0,212,255,.20));
+      border-color: rgba(255,255,255,.30);
+    }
+
+    .panel{display:none}
+    .panel.active{display:block}
+
+    .controls{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 520px){
+      .controls{grid-template-columns:1fr}
+    }
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    select, input[type="number"], input[type="text"]{
+      width:100%;
+      padding:12px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+      outline:none;
+    }
+    select:focus, input:focus{
+      border-color: rgba(0,212,255,.55);
+      box-shadow: 0 0 0 4px rgba(0,212,255,.12);
+    }
+
+    .btnrow{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .btn{
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      padding:12px 14px;
+      border-radius: 16px;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+      display:flex; align-items:center; gap:10px;
+      font-weight:700;
+      font-size:12px;
+    }
+    .btn:hover{transform: translateY(-1px)}
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(124,92,255,.55), rgba(0,212,255,.26));
+      border-color: rgba(255,255,255,.28);
+    }
+    .btn.good{
+      background: linear-gradient(135deg, rgba(49,208,170,.46), rgba(0,212,255,.16));
+      border-color: rgba(49,208,170,.55);
+    }
+    .btn.warn{
+      background: linear-gradient(135deg, rgba(255,204,102,.36), rgba(124,92,255,.16));
+      border-color: rgba(255,204,102,.55);
+    }
+    .btn.danger{
+      background: linear-gradient(135deg, rgba(255,107,138,.40), rgba(124,92,255,.16));
+      border-color: rgba(255,107,138,.55);
+    }
+    .btn:active{transform: translateY(0px) scale(.99)}
+
+    .stage{
+      min-height: 520px;
+      position:relative;
+    }
+    .stage-inner{
+      padding:16px;
+    }
+
+    .big{
+      font-size:34px;
+      font-weight:900;
+      letter-spacing:.2px;
+      margin: 10px 0 6px;
+      text-align:center;
+    }
+    .subtitle{
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+      margin:0 0 14px;
+    }
+
+    .meter{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      margin: 12px 0 14px;
+      flex-wrap:wrap;
+    }
+    .bar{
+      flex:1;
+      min-width:220px;
+      height:12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.18);
+      overflow:hidden;
+      position:relative;
+    }
+    .bar > i{
+      display:block;
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(49,208,170,.95), rgba(0,212,255,.75), rgba(124,92,255,.75));
+      transition: width .35s ease;
+    }
+    .stat{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center;
+      color:var(--muted);
+      font-size:12px;
+      user-select:none;
+    }
+    .stat b{color:var(--text)}
+    .chip{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      display:flex; gap:8px; align-items:center;
+    }
+
+    .question{
+      margin-top:8px;
+      display:grid;
+      gap:12px;
+      justify-items:center;
+    }
+    .bubble{
+      width:min(640px, 100%);
+      border-radius: 24px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      box-shadow: 0 16px 45px rgba(0,0,0,.30);
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .bubble::before{
+      content:"";
+      position:absolute;
+      inset:-80px -60px auto auto;
+      width:210px; height:210px;
+      background: radial-gradient(circle at 30% 30%, rgba(0,212,255,.22), transparent 65%);
+      transform: rotate(22deg);
+      pointer-events:none;
+    }
+    .prompt{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      font-size:26px;
+      font-weight:900;
+      text-align:center;
+    }
+    .prompt .a, .prompt .b{
+      display:inline-grid; place-items:center;
+      min-width:52px;
+      padding:6px 10px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.16);
+      position:relative;
+    }
+    .prompt .sign{
+      opacity:.9;
+      font-size:20px;
+      margin:0 4px;
+    }
+
+    .hint{
+      margin-top:10px;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .answerRow{
+      width:min(640px, 100%);
+      display:flex;
+      gap:10px;
+      align-items:stretch;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin-top:2px;
+    }
+    .answerRow input{
+      width: 180px;
+      text-align:center;
+      font-size:18px;
+      font-weight:800;
+    }
+    .answerRow .btn{
+      min-width:140px;
+      justify-content:center;
+    }
+
+    .options{
+      width:min(640px, 100%);
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+      margin-top:8px;
+    }
+    @media (max-width: 720px){
+      .options{grid-template-columns: repeat(2, 1fr)}
+    }
+    .opt{
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      padding:14px 12px;
+      text-align:center;
+      font-weight:900;
+      cursor:pointer;
+      transition: transform .12s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+      position:relative;
+      overflow:hidden;
+    }
+    .opt:hover{transform: translateY(-1px)}
+    .opt:active{transform: translateY(0px) scale(.99)}
+    .opt.good{border-color: rgba(49,208,170,.65); background: rgba(49,208,170,.14)}
+    .opt.bad{border-color: rgba(255,107,138,.65); background: rgba(255,107,138,.12)}
+
+    .toast{
+      position:absolute;
+      left:14px; right:14px; bottom:14px;
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      padding:12px 14px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.22);
+      backdrop-filter: blur(12px);
+      opacity:0;
+      transform: translateY(10px);
+      pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.show{
+      opacity:1;
+      transform: translateY(0);
+    }
+    .toast .msg{
+      display:flex; align-items:center; gap:10px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .toast .msg b{color:var(--text)}
+    .toast .mini{
+      font-size:12px; color:var(--muted);
+      padding:8px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      user-select:none;
+    }
+
+    /* Puzzle (match) */
+    .matchGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      width:min(820px, 100%);
+      margin: 0 auto;
+    }
+    @media (max-width: 820px){
+      .matchGrid{grid-template-columns:1fr}
+    }
+    .col{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      border-radius: 22px;
+      padding:12px;
+    }
+    .col h3{
+      margin:0 0 10px;
+      font-size:13px;
+      color:var(--muted);
+      display:flex; align-items:center; gap:8px;
+    }
+    .cards{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:10px;
+    }
+    @media (max-width: 420px){
+      .cards{grid-template-columns:1fr}
+    }
+    .mcard{
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      padding:12px 10px;
+      font-weight:900;
+      text-align:center;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .12s ease, background .15s ease, border-color .15s ease;
+      position:relative;
+      overflow:hidden;
+      min-height:54px;
+      display:grid; place-items:center;
+    }
+    .mcard:hover{transform: translateY(-1px)}
+    .mcard.selected{
+      border-color: rgba(0,212,255,.7);
+      background: rgba(0,212,255,.12);
+      box-shadow: 0 18px 55px rgba(0,0,0,.25);
+    }
+    .mcard.matched{
+      border-color: rgba(49,208,170,.65);
+      background: rgba(49,208,170,.12);
+      cursor:default;
+      opacity:.9;
+    }
+
+    /* Achievements */
+    .trophyRow{
+      display:flex; gap:10px; flex-wrap:wrap;
+      justify-content:center;
+      margin-top:12px;
+    }
+    .trophy{
+      padding:10px 12px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      display:flex; gap:10px; align-items:center;
+      min-width: 160px;
+      justify-content:center;
+      user-select:none;
+    }
+    .trophy i{
+      width:34px; height:34px;
+      border-radius: 14px;
+      display:grid; place-items:center;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.16);
+      font-style:normal;
+    }
+    .trophy b{font-size:13px}
+    .trophy small{display:block; color:var(--muted); font-size:12px}
+
+    /* Confetti canvas */
+    canvas#fx{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:30;
+    }
+
+    /* Motion helpers */
+    .pop{
+      animation: pop .28s ease;
+    }
+    @keyframes pop{
+      0%{transform: scale(.96); filter:saturate(.9)}
+      60%{transform: scale(1.02); filter:saturate(1.05)}
+      100%{transform: scale(1)}
+    }
+    .shake{
+      animation: shake .32s ease;
+    }
+    @keyframes shake{
+      0%,100%{transform: translateX(0)}
+      20%{transform: translateX(8px)}
+      40%{transform: translateX(-7px)}
+      60%{transform: translateX(6px)}
+      80%{transform: translateX(-5px)}
+    }
+
+    .footerNote{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+      line-height:1.8;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="fx"></canvas>
+
+  <div class="bg-particles" id="particles"></div>
+
+  <div class="wrap">
+    <header>
+      <div class="brand" title="بازی یادگیری جدول ضرب">
+        <div class="logo"></div>
+        <div>
+          <h1>بازی جدول ضرب — کلاس سوم</h1>
+          <p>کوییز + پازل + موشن + نشان‌ها برای یادگیریِ ماندگار</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="pill" title="امتیاز و سطح">
+          <span>⭐</span>
+          <span>امتیاز: <b id="scoreTop">0</b></span>
+          <span style="opacity:.55">|</span>
+          <span>سطح: <b id="levelTop">1</b></span>
+        </div>
+        <div class="pill" title="رکورد سرعت">
+          <span>⚡</span>
+          <span>رکورد سرعت: <b id="bestSpeedTop">—</b></span>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+
+      <!-- Left: Settings -->
+      <section class="card">
+        <div class="hd">
+          <div class="ttl">
+            <div class="badge"><span>🧩</span></div>
+            <div style="min-width:0">
+              <h2>تنظیمات بازی و مسیر یادگیری</h2>
+              <small>از ساده شروع کنید و کم‌کم سخت‌تر کنید</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="bd">
+          <div class="tabs" role="tablist" aria-label="حالت‌ها">
+            <button class="tab active" data-tab="quiz" role="tab">کوییز هوشمند</button>
+            <button class="tab" data-tab="speed" role="tab">سرعتی ⚡</button>
+            <button class="tab" data-tab="match" role="tab">پازل تطبیق</button>
+          </div>
+
+          <div class="panel active" id="tab-quiz" role="tabpanel">
+            <div class="controls">
+              <div>
+                <label>جدول هدف (مثلاً 2 یا 7 یا همه)</label>
+                <select id="tableSelect">
+                  <option value="all">همه جدول‌ها (2 تا 9)</option>
+                  <option value="2">فقط جدول 2</option>
+                  <option value="3">فقط جدول 3</option>
+                  <option value="4">فقط جدول 4</option>
+                  <option value="5">فقط جدول 5</option>
+                  <option value="6">فقط جدول 6</option>
+                  <option value="7">فقط جدول 7</option>
+                  <option value="8">فقط جدول 8</option>
+                  <option value="9">فقط جدول 9</option>
+                </select>
+              </div>
+              <div>
+                <label>سطح سختی</label>
+                <select id="difficulty">
+                  <option value="easy">آسان (گزینه‌ای + راهنما)</option>
+                  <option value="mix" selected>متوسط (گاهی گزینه‌ای)</option>
+                  <option value="hard">سخت (ورودی عددی)</option>
+                </select>
+              </div>
+              <div>
+                <label>تعداد سؤال در هر مرحله</label>
+                <input id="roundCount" type="number" min="5" max="30" value="10" />
+              </div>
+              <div>
+                <label>راهنما (نمایش با شکل‌ها)</label>
+                <select id="visualHint">
+                  <option value="on" selected>روشن ✅</option>
+                  <option value="off">خاموش</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="btnrow">
+              <button class="btn primary" id="startQuizBtn">شروع کوییز 🎯</button>
+              <button class="btn warn" id="resetBtn">شروع از نو 🔄</button>
+              <button class="btn" id="teacherBtn" title="نکته‌های سریع برای معلم/والد">راهنمای اجرا 👩‍🏫</button>
+            </div>
+
+            <div class="footerNote">
+              نکته: دانش‌آموز می‌تواند با <span class="kbd">Enter</span> جواب را ثبت کند، و با <span class="kbd">Space</span> سؤال بعدی را بگیرد.
+            </div>
+          </div>
+
+          <div class="panel" id="tab-speed" role="tabpanel">
+            <div class="controls">
+              <div>
+                <label>زمان (ثانیه)</label>
+                <select id="speedTime">
+                  <option value="20">20 ثانیه</option>
+                  <option value="30" selected>30 ثانیه</option>
+                  <option value="45">45 ثانیه</option>
+                  <option value="60">60 ثانیه</option>
+                </select>
+              </div>
+              <div>
+                <label>جدول‌ها</label>
+                <select id="speedTables">
+                  <option value="all" selected>همه (2 تا 9)</option>
+                  <option value="low">فقط 2 تا 5</option>
+                  <option value="high">فقط 6 تا 9</option>
+                </select>
+              </div>
+            </div>
+            <div class="btnrow">
+              <button class="btn good" id="startSpeedBtn">شروع سرعتی ⚡</button>
+              <button class="btn" id="stopSpeedBtn">توقف ⏸</button>
+            </div>
+            <div class="footerNote">
+              هدف: در زمان کم، تعداد بیشتری جواب درست بدهیم. اگر اشتباه شد، دوباره همان نوع سؤال برمی‌گردد.
+            </div>
+          </div>
+
+          <div class="panel" id="tab-match" role="tabpanel">
+            <div class="controls">
+              <div>
+                <label>جدول پازل</label>
+                <select id="matchTable">
+                  <option value="2">پازل جدول 2</option>
+                  <option value="3">پازل جدول 3</option>
+                  <option value="4">پازل جدول 4</option>
+                  <option value="5" selected>پازل جدول 5</option>
+                  <option value="6">پازل جدول 6</option>
+                  <option value="7">پازل جدول 7</option>
+                  <option value="8">پازل جدول 8</option>
+                  <option value="9">پازل جدول 9</option>
+                </select>
+              </div>
+              <div>
+                <label>تعداد کارت‌ها</label>
+                <select id="matchCount">
+                  <option value="6">6 کارت (خیلی آسان)</option>
+                  <option value="8" selected>8 کارت (آسان)</option>
+                  <option value="10">10 کارت (متوسط)</option>
+                  <option value="12">12 کارت (چالش‌دار)</option>
+                </select>
+              </div>
+            </div>
+            <div class="btnrow">
+              <button class="btn primary" id="startMatchBtn">ساخت پازل 🧩</button>
+              <button class="btn" id="reshuffleMatchBtn">درهم‌ریزی دوباره 🎲</button>
+            </div>
+            <div class="footerNote">
+              روش بازی: یک کارت «عبارت» و یک کارت «جواب» را پیدا کن تا جفت شوند.
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Right: Stage -->
+      <section class="card stage" aria-live="polite">
+        <div class="hd">
+          <div class="ttl">
+            <div class="badge"><span id="modeIcon">🎯</span></div>
+            <div style="min-width:0">
+              <h2 id="modeTitle">کوییز هوشمند</h2>
+              <small id="modeDesc">با سوال‌های کوتاه و بازخورد فوری یاد بگیر</small>
+            </div>
+          </div>
+          <div class="pill" title="زمان / مرحله">
+            <span id="clockIcon">⏱</span>
+            <span><b id="timeTxt">—</b></span>
+          </div>
+        </div>
+
+        <div class="stage-inner" id="stage">
+          <div class="big">سلام قهرمان ضرب!</div>
+          <p class="subtitle">یک حالت را انتخاب کن و شروع کن. هر جواب درست، ستاره می‌دهد.</p>
+
+          <div class="trophyRow">
+            <div class="trophy"><i>⭐</i><div><b>ستاره‌ها</b><small id="starsTxt">0</small></div></div>
+            <div class="trophy"><i>🏅</i><div><b>نشان‌ها</b><small id="badgeTxt">0</small></div></div>
+            <div class="trophy"><i>📈</i><div><b>پیشرفت</b><small id="progressTxt">0%</small></div></div>
+          </div>
+
+          <div class="footerNote" style="margin-top:18px">
+            پیشنهاد آموزشی: ابتدا جدول‌های 2 و 5 (الگوها)، سپس 3 و 4، بعد 6 تا 9.
+          </div>
+        </div>
+
+        <div class="toast" id="toast">
+          <div class="msg" id="toastMsg"><b>آماده‌ای؟</b> شروع کنیم!</div>
+          <div class="mini" id="toastMini">راهنما</div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+<script>
+(function(){
+  // ---------- helpers ----------
+  const $ = (q,el=document)=>el.querySelector(q);
+  const $$ = (q,el=document)=>Array.from(el.querySelectorAll(q));
+  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+  const rnd = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const shuffle = (arr)=>arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+
+  // ---------- persistent state ----------
+  const storeKey="zarb_game_v1";
+  const saved = JSON.parse(localStorage.getItem(storeKey)||"{}");
+  const state = {
+    score: saved.score||0,
+    stars: saved.stars||0,
+    badges: saved.badges||0,
+    level: saved.level||1,
+    bestSpeed: saved.bestSpeed||null, // number correct
+    seen: saved.seen||{}, // "a×b": {right, wrong, last}
+    // session
+    mode: "quiz",
+    roundTotal: 10,
+    roundDone: 0,
+    roundRight: 0,
+    current: null,
+    allowNext: false,
+    speed: {running:false, endAt:0, right:0, wrong:0, timer:null},
+    match: {pairs:[], selectedL:null, selectedR:null, matched:0}
+  };
+
+  function persist(){
+    const out = {
+      score: state.score,
+      stars: state.stars,
+      badges: state.badges,
+      level: state.level,
+      bestSpeed: state.bestSpeed,
+      seen: state.seen
+    };
+    localStorage.setItem(storeKey, JSON.stringify(out));
+  }
+
+  // ---------- UI refs ----------
+  const scoreTop=$("#scoreTop"), levelTop=$("#levelTop"), bestSpeedTop=$("#bestSpeedTop");
+  const starsTxt=$("#starsTxt"), badgeTxt=$("#badgeTxt"), progressTxt=$("#progressTxt");
+  const modeIcon=$("#modeIcon"), modeTitle=$("#modeTitle"), modeDesc=$("#modeDesc");
+  const timeTxt=$("#timeTxt"), clockIcon=$("#clockIcon");
+  const stage=$("#stage");
+  const toast=$("#toast"), toastMsg=$("#toastMsg"), toastMini=$("#toastMini");
+
+  // controls
+  const tableSelect=$("#tableSelect");
+  const difficulty=$("#difficulty");
+  const roundCount=$("#roundCount");
+  const visualHint=$("#visualHint");
+  const startQuizBtn=$("#startQuizBtn");
+  const resetBtn=$("#resetBtn");
+  const teacherBtn=$("#teacherBtn");
+
+  const speedTime=$("#speedTime");
+  const speedTables=$("#speedTables");
+  const startSpeedBtn=$("#startSpeedBtn");
+  const stopSpeedBtn=$("#stopSpeedBtn");
+
+  const matchTable=$("#matchTable");
+  const matchCount=$("#matchCount");
+  const startMatchBtn=$("#startMatchBtn");
+  const reshuffleMatchBtn=$("#reshuffleMatchBtn");
+
+  // tabs
+  $$(".tab").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      $$(".tab").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      const tab = btn.dataset.tab;
+      $$(".panel").forEach(p=>p.classList.remove("active"));
+      $("#tab-"+tab).classList.add("active");
+      switchMode(tab);
+    });
+  });
+
+  // particles
+  (function buildParticles(){
+    const box=$("#particles");
+    const N=16;
+    for(let i=0;i<N;i++){
+      const d=document.createElement("div");
+      d.className="dot";
+      const x=Math.random()*100, y=Math.random()*100;
+      d.style.left=x+"%";
+      d.style.top=y+"%";
+      d.style.animationDelay=(Math.random()*4)+"s";
+      d.style.animationDuration=(6+Math.random()*6)+"s";
+      d.style.transform=`translateZ(0) scale(${0.8+Math.random()*1.6})`;
+      box.appendChild(d);
+    }
+  })();
+
+  // ---------- confetti ----------
+  const fx=$("#fx");
+  const ctx=fx.getContext("2d");
+  let confetti=[];
+  function resizeFx(){
+    fx.width = window.innerWidth * devicePixelRatio;
+    fx.height = window.innerHeight * devicePixelRatio;
+  }
+  window.addEventListener("resize", resizeFx);
+  resizeFx();
+
+  function burstConfetti(power=120){
+    const w=fx.width, h=fx.height;
+    const cx = w*0.5, cy = h*0.28;
+    for(let i=0;i<power;i++){
+      confetti.push({
+        x: cx + rnd(-80,80),
+        y: cy + rnd(-30,30),
+        vx: (Math.random()*2-1) * rnd(4,12) * devicePixelRatio,
+        vy: (Math.random()*-1) * rnd(6,16) * devicePixelRatio,
+        g: rnd(18,26) * devicePixelRatio * 0.06,
+        r: rnd(3,6) * devicePixelRatio,
+        a: 1
+      });
+    }
+  }
+  function tickFx(){
+    ctx.clearRect(0,0,fx.width,fx.height);
+    confetti = confetti.filter(p=>p.a>0);
+    for(const p of confetti){
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.a -= 0.012;
+      ctx.globalAlpha = clamp(p.a,0,1);
+      // no explicit colors: derive grayscale-ish + alpha; keep simple
+      ctx.fillStyle = "rgba(255,255,255,"+clamp(p.a,0,1)+")";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    requestAnimationFrame(tickFx);
+  }
+  tickFx();
+
+  // ---------- scoring & leveling ----------
+  function updateTop(){
+    scoreTop.textContent = state.score;
+    levelTop.textContent = state.level;
+    bestSpeedTop.textContent = state.bestSpeed==null ? "—" : (state.bestSpeed + " درست");
+    starsTxt.textContent = state.stars;
+    badgeTxt.textContent = state.badges;
+    progressTxt.textContent = progressPercent()+"%";
+  }
+  function progressPercent(){
+    // heuristic: based on unique facts with >=3 right and <=1 wrong
+    const keys = Object.keys(state.seen);
+    if(keys.length===0) return 0;
+    let good=0;
+    keys.forEach(k=>{
+      const it=state.seen[k];
+      if((it.right||0) >= 3 && (it.wrong||0) <= 1) good++;
+    });
+    return Math.round((good/Math.max(30,keys.length))*100); // normalize
+  }
+  function addScore(points){
+    state.score += points;
+    state.stars += Math.max(0, Math.floor(points/10));
+    // level up each 120 points
+    const newLevel = Math.floor(state.score/120)+1;
+    if(newLevel>state.level){
+      state.level=newLevel;
+      state.badges += 1;
+      burstConfetti(150);
+      showToast("🏅 سطح جدید گرفتی!", "سطح "+state.level);
+    }
+    updateTop();
+    persist();
+  }
+
+  // ---------- toast ----------
+  let toastTimer=null;
+  function showToast(text, mini="راهنما", ms=1400){
+    toastMsg.innerHTML = text;
+    toastMini.textContent = mini;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>toast.classList.remove("show"), ms);
+  }
+
+  // ---------- question generation (light spaced repetition) ----------
+  function pickTables(){
+    const v = tableSelect.value;
+    if(v==="all") return [2,3,4,5,6,7,8,9];
+    return [parseInt(v,10)];
+  }
+
+  function weightFor(a,b){
+    const key=`${a}x${b}`;
+    const it=state.seen[key]||{right:0,wrong:0,last:0};
+    // more weight if wrong or not seen; less if mastered
+    const r=it.right||0, w=it.wrong||0;
+    const age = Date.now() - (it.last||0);
+    const ageBoost = clamp(age/(1000*60*5), 0, 2); // up to +2 after ~10min
+    let base = 3 + w*3 - r*1.2 + ageBoost;
+    if(r>=4 && w===0) base *= 0.35;
+    return clamp(base, 0.2, 12);
+  }
+
+  function nextQuestionFromPool(pool){
+    const weights = pool.map(q=>weightFor(q.a,q.b));
+    const sum = weights.reduce((s,x)=>s+x,0);
+    let t = Math.random()*sum;
+    for(let i=0;i<pool.length;i++){
+      t -= weights[i];
+      if(t<=0) return pool[i];
+    }
+    return pool[pool.length-1];
+  }
+
+  function buildPool(tables){
+    const pool=[];
+    // for grade 3: multiply by 1..10 (we include 0? no)
+    tables.forEach(a=>{
+      for(let b=1;b<=10;b++){
+        pool.push({a,b,ans:a*b});
+      }
+    });
+    return pool;
+  }
+
+  function makeDistractors(ans){
+    const set = new Set([ans]);
+    while(set.size<4){
+      const delta = rnd(-6,6);
+      const v = clamp(ans + delta + rnd(-2,2), 0, 99);
+      if(v!==ans) set.add(v);
+    }
+    return shuffle(Array.from(set)).slice(0,4);
+  }
+
+  // ---------- renderers ----------
+  function renderQuizIntro(){
+    stage.innerHTML = `
+      <div class="big pop">کوییز هوشمند</div>
+      <p class="subtitle">سؤال‌ها با توجه به اشتباه‌ها و تمرین‌های قبلی انتخاب می‌شوند.</p>
+      <div class="trophyRow">
+        <div class="trophy"><i>⭐</i><div><b>امتیاز</b><small>${state.score}</small></div></div>
+        <div class="trophy"><i>🧠</i><div><b>یادگیری</b><small>بازخورد فوری</small></div></div>
+        <div class="trophy"><i>🎯</i><div><b>هدف</b><small>درست‌های پی‌درپی</small></div></div>
+      </div>
+      <div class="footerNote" style="margin-top:16px">
+        نکته: اگر دانش‌آموز اشتباه کند، همان نوع سؤال دوباره با فاصله برمی‌گردد تا جا بیفتد.
+      </div>
+    `;
+    timeTxt.textContent="—";
+    clockIcon.textContent="⏱";
+  }
+
+  function renderSpeedIntro(){
+    stage.innerHTML = `
+      <div class="big pop">حالت سرعتی ⚡</div>
+      <p class="subtitle">در زمان محدود، هر جواب درست یک امتیاز خوب می‌دهد.</p>
+      <div class="trophyRow">
+        <div class="trophy"><i>⚡</i><div><b>تمرکز</b><small>زود و درست</small></div></div>
+        <div class="trophy"><i>⏳</i><div><b>زمان</b><small>چالش‌برانگیز</small></div></div>
+        <div class="trophy"><i>🏁</i><div><b>رکورد</b><small>${state.bestSpeed==null?"—":state.bestSpeed+" درست"}</small></div></div>
+      </div>
+      <div class="footerNote" style="margin-top:16px">
+        پیشنهاد: اول 30 ثانیه با جدول‌های 2 تا 5، بعد سراغ همه جدول‌ها.
+      </div>
+    `;
+    timeTxt.textContent="—";
+    clockIcon.textContent="⏱";
+  }
+
+  function renderMatchIntro(){
+    stage.innerHTML = `
+      <div class="big pop">پازل تطبیق 🧩</div>
+      <p class="subtitle">عبارت را با جواب درست جفت کن تا کارت‌ها قفل شوند.</p>
+      <div class="trophyRow">
+        <div class="trophy"><i>🧩</i><div><b>حافظه</b><small>جفت‌سازی</small></div></div>
+        <div class="trophy"><i>👀</i><div><b>دقت</b><small>پیدا کردن الگو</small></div></div>
+        <div class="trophy"><i>🎉</i><div><b>جایزه</b><small>قفل شدن جفت‌ها</small></div></div>
+      </div>
+      <div class="footerNote" style="margin-top:16px">
+        نکته: برای کلاس، می‌توانید دانش‌آموزها را دو تیم کنید و هر جفتِ درست یک امتیاز باشد.
+      </div>
+    `;
+    timeTxt.textContent="—";
+    clockIcon.textContent="⏱";
+  }
+
+  function switchMode(m){
+    state.mode=m;
+    state.allowNext=false;
+    // stop speed timer if switching
+    stopSpeed();
+
+    if(m==="quiz"){
+      modeIcon.textContent="🎯";
+      modeTitle.textContent="کوییز هوشمند";
+      modeDesc.textContent="سوال‌های هدفمند + بازخورد فوری";
+      renderQuizIntro();
+    }else if(m==="speed"){
+      modeIcon.textContent="⚡";
+      modeTitle.textContent="حالت سرعتی";
+      modeDesc.textContent="در زمان کم، درست‌های بیشتر";
+      renderSpeedIntro();
+    }else{
+      modeIcon.textContent="🧩";
+      modeTitle.textContent="پازل تطبیق";
+      modeDesc.textContent="عبارت و جواب را جفت کن";
+      renderMatchIntro();
+    }
+  }
+
+  // ---------- QUIZ mode ----------
+  let quizPool = [];
+  function startQuiz(){
+    const tables = pickTables();
+    quizPool = buildPool(tables);
+    state.roundTotal = clamp(parseInt(roundCount.value,10)||10, 5, 30);
+    state.roundDone=0; state.roundRight=0;
+    state.allowNext=false;
+    showToast("🎯 شروع شد! هر جواب درست یک ستاره نزدیک‌تر.", "کوییز");
+    nextQuizQuestion();
+  }
+
+  function visualDots(count){
+    // show groups of 5 with symbols to avoid heavy DOM
+    const sym = ["🍎","⭐","🔷","🌼"][rnd(0,3)];
+    const n = clamp(count,0,60);
+    let s="";
+    for(let i=1;i<=n;i++){
+      s += sym;
+      if(i%5===0) s += " ";
+      if(i%20===0) s += "<br>";
+    }
+    return s || "—";
+  }
+
+  function renderQuizQuestion(q){
+    const diff = difficulty.value;
+    const useOptions =
+      (diff==="easy") ? true :
+      (diff==="mix") ? (Math.random()<0.6) :
+      false;
+
+    const hintOn = (visualHint.value==="on");
+    const options = makeDistractors(q.ans);
+
+    const progress = Math.round((state.roundDone/state.roundTotal)*100);
+    timeTxt.textContent = `مرحله: ${state.roundDone+1} از ${state.roundTotal}`;
+    clockIcon.textContent="📍";
+
+    stage.innerHTML = `
+      <div class="big pop">سؤال ${state.roundDone+1}</div>
+      <p class="subtitle">به‌آرامی فکر کن: ${q.a} تا ${q.b} تا یعنی چندتا؟</p>
+
+      <div class="meter">
+        <div class="bar" aria-label="نوار پیشرفت"><i style="width:${progress}%"></i></div>
+        <div class="stat">
+          <span class="chip">✅ درست: <b>${state.roundRight}</b></span>
+          <span class="chip">🧠 سطح: <b>${state.level}</b></span>
+          <span class="chip">⭐ امتیاز: <b>${state.score}</b></span>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="bubble pop">
+          <div class="prompt" aria-label="صورت سوال">
+            <span class="a">${q.a}</span>
+            <span class="sign">×</span>
+            <span class="b">${q.b}</span>
+            <span class="sign">=</span>
+            <span style="opacity:.85">؟</span>
+          </div>
+
+          ${hintOn ? `
+            <div class="hint">
+              راهنما: ${q.a} گروهِ ${q.b}تایی → <span style="display:inline-block; padding:6px 10px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(0,0,0,.14); margin-top:8px">
+                ${visualDots(Math.min(q.ans,40))}
+              </span>
+            </div>
+          ` : `<div class="hint">راهنما خاموش است</div>`}
+        </div>
+
+        ${useOptions ? `
+          <div class="options" id="opts" aria-label="گزینه‌ها">
+            ${options.map(v=>`<div class="opt" data-v="${v}">${v}</div>`).join("")}
+          </div>
+          <div class="answerRow" style="margin-top:2px">
+            <button class="btn primary" id="nextBtn" disabled style="opacity:.55; cursor:not-allowed">سؤال بعدی ➜</button>
+          </div>
+        ` : `
+          <div class="answerRow">
+            <input id="ansInput" inputmode="numeric" autocomplete="off" placeholder="جواب را بنویس" />
+            <button class="btn primary" id="checkBtn">بررسی ✅</button>
+            <button class="btn" id="skipBtn" title="اگر نمی‌دانی، جواب را ببین و برو بعدی">نمی‌دانم 🤔</button>
+          </div>
+        `}
+      </div>
+
+      <div class="footerNote">
+        نکته: ضرب یعنی «چند گروه مساوی». به الگوها دقت کن (مثل جدول 5 که همیشه به 0 یا 5 ختم می‌شود).
+      </div>
+    `;
+
+    if(useOptions){
+      const opts=$("#opts");
+      const nextBtn=$("#nextBtn");
+      opts.addEventListener("click", (e)=>{
+        const t=e.target.closest(".opt");
+        if(!t || state.allowNext) return;
+        const v=parseInt(t.dataset.v,10);
+        const ok = (v===q.ans);
+        $$(".opt",opts).forEach(x=>x.style.pointerEvents="none");
+        $$(".opt",opts).forEach(x=>{
+          const vv=parseInt(x.dataset.v,10);
+          if(vv===q.ans) x.classList.add("good");
+          else if(vv===v && !ok) x.classList.add("bad");
+        });
+        onAnswered(ok, q, v);
+        state.allowNext=true;
+        nextBtn.disabled=false;
+        nextBtn.style.opacity="1";
+        nextBtn.style.cursor="pointer";
+        nextBtn.classList.add("pop");
+        nextBtn.addEventListener("click", ()=> nextQuizQuestion(), {once:true});
+      });
+    }else{
+      const input=$("#ansInput");
+      const check=$("#checkBtn");
+      const skip=$("#skipBtn");
+      input.focus();
+
+      function submit(){
+        if(state.allowNext) return;
+        const v = parseInt((input.value||"").trim(),10);
+        if(Number.isNaN(v)){
+          stage.classList.remove("shake"); void stage.offsetWidth; stage.classList.add("shake");
+          showToast("عدد وارد کن 👀", "راهنما");
+          return;
+        }
+        const ok = (v===q.ans);
+        onAnswered(ok, q, v);
+        state.allowNext=true;
+        // show next
+        const row=document.createElement("div");
+        row.className="answerRow";
+        row.innerHTML = `<button class="btn good pop" id="nextBtn2">سؤال بعدی ➜</button>`;
+        $(".question").appendChild(row);
+        $("#nextBtn2").addEventListener("click", ()=> nextQuizQuestion(), {once:true});
+      }
+
+      check.addEventListener("click", submit);
+      skip.addEventListener("click", ()=>{
+        if(state.allowNext) return;
+        onAnswered(false, q, null, true);
+        state.allowNext=true;
+        const row=document.createElement("div");
+        row.className="answerRow";
+        row.innerHTML = `<button class="btn good pop" id="nextBtn2">سؤال بعدی ➜</button>`;
+        $(".question").appendChild(row);
+        $("#nextBtn2").addEventListener("click", ()=> nextQuizQuestion(), {once:true});
+      });
+
+      document.addEventListener("keydown", keyHandlerOnce);
+      function keyHandlerOnce(ev){
+        if(state.mode!=="quiz") { document.removeEventListener("keydown", keyHandlerOnce); return; }
+        if(ev.key==="Enter"){ submit(); }
+        if(ev.code==="Space" && state.allowNext){ nextQuizQuestion(); }
+      }
+    }
+  }
+
+  function markSeen(q, ok){
+    const key=`${q.a}x${q.b}`;
+    const it = state.seen[key] || {right:0,wrong:0,last:0};
+    it.last = Date.now();
+    if(ok) it.right = (it.right||0)+1;
+    else it.wrong = (it.wrong||0)+1;
+    state.seen[key]=it;
+    persist();
+  }
+
+  function onAnswered(ok, q, userV, skipped=false){
+    markSeen(q, ok);
+    state.roundDone += 1;
+    if(ok){
+      state.roundRight += 1;
+      addScore(18);
+      burstConfetti(90);
+      showToast("✅ آفرین! درست بود.", `+18 امتیاز`);
+    }else{
+      // show correct answer
+      addScore(4);
+      const msg = skipped
+        ? `🤔 اشکال ندارد. جواب: <b>${q.a}×${q.b} = ${q.ans}</b>`
+        : `❌ نزدیک بود. جواب درست: <b>${q.a}×${q.b} = ${q.ans}</b>`;
+      showToast(msg, "+4 امتیاز");
+      stage.classList.remove("shake"); void stage.offsetWidth; stage.classList.add("shake");
+    }
+    updateTop();
+  }
+
+  function nextQuizQuestion(){
+    state.allowNext=false;
+    if(state.roundDone >= state.roundTotal){
+      endQuiz();
+      return;
+    }
+    const q = nextQuestionFromPool(quizPool);
+    state.current = q;
+    renderQuizQuestion(q);
+  }
+
+  function endQuiz(){
+    const pct = Math.round((state.roundRight/state.roundTotal)*100);
+    const bonus = (pct>=80) ? 60 : (pct>=60 ? 35 : 18);
+    addScore(bonus);
+    burstConfetti(pct>=80 ? 180 : 110);
+    stage.innerHTML = `
+      <div class="big pop">پایان مرحله 🎉</div>
+      <p class="subtitle">نتیجه: <b>${state.roundRight}</b> درست از <b>${state.roundTotal}</b> — ${pct}%</p>
+
+      <div class="trophyRow">
+        <div class="trophy"><i>✅</i><div><b>درست‌ها</b><small>${state.roundRight}</small></div></div>
+        <div class="trophy"><i>🎁</i><div><b>جایزه</b><small>+${bonus} امتیاز</small></div></div>
+        <div class="trophy"><i>📈</i><div><b>پیشرفت</b><small>${progressPercent()}%</small></div></div>
+      </div>
+
+      <div class="btnrow" style="justify-content:center; margin-top:16px">
+        <button class="btn primary" id="againBtn">یک مرحله دیگر 🎯</button>
+        <button class="btn" id="reviewBtn">مرور اشتباه‌ها 🔍</button>
+      </div>
+
+      <div class="footerNote">
+        پیشنهاد: اگر درصد پایین بود، جدول را محدود کن (مثلاً فقط 6) و دوباره تمرین کن.
+      </div>
+    `;
+    timeTxt.textContent="—";
+    clockIcon.textContent="⏱";
+
+    $("#againBtn").addEventListener("click", startQuiz);
+    $("#reviewBtn").addEventListener("click", ()=>{
+      // pick top wrong ones and make a short round
+      const keys = Object.keys(state.seen);
+      const list = keys.map(k=>{
+        const it=state.seen[k];
+        const [a,b]=k.split("x").map(Number);
+        return {a,b,ans:a*b, w:(it.wrong||0), r:(it.right||0)};
+      }).filter(x=>x.w>0).sort((x,y)=> (y.w - x.w) || (x.r - y.r));
+      if(list.length===0){
+        showToast("فعلاً اشتباهی ثبت نشده! عالیه.", "مرور");
+        return;
+      }
+      // create a temp pool from worst 10
+      quizPool = list.slice(0,10).map(({a,b,ans})=>({a,b,ans}));
+      state.roundTotal = Math.min(10, quizPool.length);
+      state.roundDone=0; state.roundRight=0;
+      showToast("🔍 مرور اشتباه‌ها شروع شد.", "مرور");
+      nextQuizQuestion();
+    });
+  }
+
+  // ---------- SPEED mode ----------
+  function speedTableSet(){
+    const v=speedTables.value;
+    if(v==="low") return [2,3,4,5];
+    if(v==="high") return [6,7,8,9];
+    return [2,3,4,5,6,7,8,9];
+  }
+
+  function startSpeed(){
+    const seconds = parseInt(speedTime.value,10);
+    const tables = speedTableSet();
+    quizPool = buildPool(tables);
+    state.speed.running=true;
+    state.speed.right=0;
+    state.speed.wrong=0;
+    state.speed.endAt = Date.now() + seconds*1000;
+    showToast("⚡ شروع سرعتی! هر درست = امتیاز بیشتر.", seconds+"ث");
+    renderSpeedQuestion();
+    if(state.speed.timer) clearInterval(state.speed.timer);
+    state.speed.timer = setInterval(()=>{
+      if(!state.speed.running) return;
+      const left = Math.max(0, state.speed.endAt - Date.now());
+      timeTxt.textContent = `زمان: ${Math.ceil(left/1000)} ث`;
+      clockIcon.textContent="⏳";
+      if(left<=0){
+        endSpeed();
+      }
+    }, 120);
+  }
+
+  function stopSpeed(){
+    if(state.speed.timer) clearInterval(state.speed.timer);
+    state.speed.timer=null;
+    state.speed.running=false;
+  }
+
+  function renderSpeedQuestion(){
+    const q = nextQuestionFromPool(quizPool);
+    state.current=q;
+
+    stage.innerHTML = `
+      <div class="big pop">سرعتی ⚡</div>
+      <p class="subtitle">سریع ولی دقیق! (Enter برای ثبت)</p>
+
+      <div class="meter">
+        <div class="bar" aria-label="نوار امتیاز"><i style="width:${clamp(state.speed.right*6,0,100)}%"></i></div>
+        <div class="stat">
+          <span class="chip">✅ درست: <b>${state.speed.right}</b></span>
+          <span class="chip">❌ غلط: <b>${state.speed.wrong}</b></span>
+          <span class="chip">⭐ امتیاز: <b>${state.score}</b></span>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="bubble pop">
+          <div class="prompt">
+            <span class="a">${q.a}</span>
+            <span class="sign">×</span>
+            <span class="b">${q.b}</span>
+            <span class="sign">=</span>
+            <span style="opacity:.85">؟</span>
+          </div>
+          <div class="hint">اگر اشتباه شد، همان نوع سؤال دوباره برمی‌گردد.</div>
+        </div>
+
+        <div class="answerRow">
+          <input id="speedInput" inputmode="numeric" autocomplete="off" placeholder="جواب" />
+          <button class="btn good" id="speedCheck">ثبت ✅</button>
+          <button class="btn danger" id="speedPass">رد کن ⏭</button>
+        </div>
+      </div>
+    `;
+
+    const input=$("#speedInput");
+    input.focus();
+
+    function submit(pass=false){
+      if(!state.speed.running) return;
+      const v = pass ? null : parseInt((input.value||"").trim(),10);
+      const ok = (!pass && !Number.isNaN(v) && v===q.ans);
+      markSeen(q, ok);
+      if(ok){
+        state.speed.right++;
+        addScore(14);
+        burstConfetti(55);
+      }else{
+        state.speed.wrong++;
+        addScore(2);
+      }
+      renderSpeedQuestion();
+    }
+
+    $("#speedCheck").addEventListener("click", ()=>submit(false));
+    $("#speedPass").addEventListener("click", ()=>submit(true));
+
+    document.addEventListener("keydown", speedKeyOnce);
+    function speedKeyOnce(ev){
+      if(state.mode!=="speed") { document.removeEventListener("keydown", speedKeyOnce); return; }
+      if(ev.key==="Enter"){ submit(false); }
+    }
+  }
+
+  function endSpeed(){
+    stopSpeed();
+    const right = state.speed.right;
+    const bonus = right>=18 ? 80 : right>=12 ? 50 : right>=7 ? 25 : 12;
+    addScore(bonus);
+
+    let newRecord=false;
+    if(state.bestSpeed==null || right>state.bestSpeed){
+      state.bestSpeed=right;
+      newRecord=true;
+      state.badges += 1;
+      persist();
+    }
+    burstConfetti(newRecord?190:120);
+
+    stage.innerHTML = `
+      <div class="big pop">پایان سرعتی 🏁</div>
+      <p class="subtitle">درست‌ها: <b>${right}</b> — غلط‌ها: <b>${state.speed.wrong}</b></p>
+
+      <div class="trophyRow">
+        <div class="trophy"><i>🎁</i><div><b>جایزه</b><small>+${bonus} امتیاز</small></div></div>
+        <div class="trophy"><i>${newRecord?"🏆":"📌"}</i><div><b>${newRecord?"رکورد جدید!":"رکورد"}</b><small>${state.bestSpeed} درست</small></div></div>
+        <div class="trophy"><i>📈</i><div><b>پیشرفت</b><small>${progressPercent()}%</small></div></div>
+      </div>
+
+      <div class="btnrow" style="justify-content:center; margin-top:16px">
+        <button class="btn good" id="speedAgain">دوباره ⚡</button>
+        <button class="btn" id="toQuiz">برگشت به کوییز 🎯</button>
+      </div>
+      <div class="footerNote">
+        هدف پیشنهادی: 30 ثانیه، حداقل 10 درست. بعد رکورد را بهتر کن.
+      </div>
+    `;
+    timeTxt.textContent="—";
+    clockIcon.textContent="⏱";
+    $("#speedAgain").addEventListener("click", startSpeed);
+    $("#toQuiz").addEventListener("click", ()=>{
+      // switch tab UI too
+      $$(".tab").forEach(b=>b.classList.remove("active"));
+      $$(".panel").forEach(p=>p.classList.remove("active"));
+      $(`.tab[data-tab="quiz"]`).classList.add("active");
+      $("#tab-quiz").classList.add("active");
+      switchMode("quiz");
+    });
+    updateTop();
+  }
+
+  // ---------- MATCH mode ----------
+  function buildPairs(table, count){
+    // choose random multipliers 1..10 unique
+    const mults = shuffle(Array.from({length:10},(_,i)=>i+1)).slice(0, Math.ceil(count/2));
+    const pairs = mults.map(b=>{
+      const a = table;
+      return {a,b, expr:`${a}×${b}`, ans: a*b};
+    });
+    return pairs;
+  }
+
+  function renderMatch(pairs){
+    state.match.selectedL=null;
+    state.match.selectedR=null;
+    state.match.matched=0;
+
+    const left = shuffle(pairs.map((p,idx)=>({id:idx, text:p.expr})));
+    const right = shuffle(pairs.map((p,idx)=>({id:idx, text:String(p.ans)})));
+
+    stage.innerHTML = `
+      <div class="big pop">پازل تطبیق 🧩</div>
+      <p class="subtitle">یک «عبارت» و یک «جواب» را انتخاب کن تا جفت شوند.</p>
+
+      <div class="meter">
+        <div class="bar"><i id="mbar" style="width:0%"></i></div>
+        <div class="stat">
+          <span class="chip">🔒 جفت‌شده: <b id="mmatched">0</b> / ${pairs.length}</span>
+          <span class="chip">⭐ امتیاز: <b>${state.score}</b></span>
+        </div>
+      </div>
+
+      <div class="matchGrid">
+        <div class="col">
+          <h3>🟦 عبارت‌ها</h3>
+          <div class="cards" id="leftCards">
+            ${left.map(x=>`<div class="mcard" data-side="L" data-id="${x.id}">${x.text}</div>`).join("")}
+          </div>
+        </div>
+        <div class="col">
+          <h3>🟩 جواب‌ها</h3>
+          <div class="cards" id="rightCards">
+            ${right.map(x=>`<div class="mcard" data-side="R" data-id="${x.id}">${x.text}</div>`).join("")}
+          </div>
+        </div>
+      </div>
+
+      <div class="footerNote">
+        اگر درست جفت شد، کارت‌ها قفل می‌شوند. اگر غلط شد، دوباره امتحان کن.
+      </div>
+    `;
+
+    function updateMatchBar(){
+      const pct = Math.round((state.match.matched/pairs.length)*100);
+      $("#mbar").style.width = pct+"%";
+      $("#mmatched").textContent = state.match.matched;
+      if(state.match.matched===pairs.length){
+        const bonus = 55 + pairs.length*3;
+        addScore(bonus);
+        burstConfetti(170);
+        showToast("🎉 پازل کامل شد!", `+${bonus} امتیاز`);
+        // mark as learned lightly
+        pairs.forEach(p=>markSeen(p, true));
+      }
+    }
+
+    stage.addEventListener("click", (e)=>{
+      const c=e.target.closest(".mcard");
+      if(!c) return;
+      if(c.classList.contains("matched")) return;
+
+      const side=c.dataset.side;
+      const id=parseInt(c.dataset.id,10);
+
+      // toggle selection
+      if(side==="L"){
+        $$("#leftCards .mcard").forEach(x=>x.classList.remove("selected"));
+        c.classList.add("selected");
+        state.match.selectedL=id;
+      }else{
+        $$("#rightCards .mcard").forEach(x=>x.classList.remove("selected"));
+        c.classList.add("selected");
+        state.match.selectedR=id;
+      }
+
+      if(state.match.selectedL!=null && state.match.selectedR!=null){
+        const ok = state.match.selectedL===state.match.selectedR;
+
+        const l = $(`#leftCards .mcard[data-id="${state.match.selectedL}"]`);
+        const r = $(`#rightCards .mcard[data-id="${state.match.selectedR}"]`);
+
+        if(ok){
+          l.classList.remove("selected"); r.classList.remove("selected");
+          l.classList.add("matched"); r.classList.add("matched");
+          state.match.matched++;
+          addScore(16);
+          burstConfetti(70);
+          showToast("✅ جفت درست!", "+16 امتیاز");
+        }else{
+          addScore(3);
+          showToast("❌ این جفت نبود. دوباره!", "+3 امتیاز");
+          stage.classList.remove("shake"); void stage.offsetWidth; stage.classList.add("shake");
+          setTimeout(()=>{
+            l.classList.remove("selected");
+            r.classList.remove("selected");
+          }, 250);
+        }
+        state.match.selectedL=null;
+        state.match.selectedR=null;
+        updateMatchBar();
+      }
+    }, {once:false});
+  }
+
+  function startMatch(){
+    const t=parseInt(matchTable.value,10);
+    const c=parseInt(matchCount.value,10);
+    const pairs = buildPairs(t, c);
+    state.match.pairs=pairs;
+    renderMatch(pairs);
+    timeTxt.textContent = `جدول ${t}`;
+    clockIcon.textContent="🧩";
+    showToast("🧩 پازل ساخته شد!", `جدول ${t}`);
+  }
+
+  // ---------- teacher hints ----------
+  teacherBtn.addEventListener("click", ()=>{
+    const tips = `
+      <div class="big pop">راهنمای سریع اجرا 👩‍🏫</div>
+      <p class="subtitle">۳ ایده برای کلاس سوم (کوتاه و عملی)</p>
+      <div class="bubble pop" style="margin: 0 auto; width:min(720px, 100%);">
+        <div class="hint" style="font-size:13px; line-height:2; color:rgba(255,255,255,.82)">
+          <b>۱) شروع با الگوها:</b> جدول 2 و 5 را اول بگیرید (الگوی زوج/پایان 0 یا 5).<br>
+          <b>۲) بازی تیمی:</b> کلاس را دو تیم کنید. هر جواب درست = یک امتیاز. هر اشتباه = فرصت تیم مقابل.<br>
+          <b>۳) تقویت حافظه:</b> بعد از هر 10 سؤال، 2 سؤال از اشتباه‌ها را «مرور» کنید تا تثبیت شود.
+        </div>
+      </div>
+      <div class="btnrow" style="justify-content:center; margin-top:14px">
+        <button class="btn primary" id="goBack">برگشت</button>
+      </div>
+    `;
+    stage.innerHTML = tips;
+    $("#goBack").addEventListener("click", ()=>{
+      if(state.mode==="quiz") renderQuizIntro();
+      else if(state.mode==="speed") renderSpeedIntro();
+      else renderMatchIntro();
+    });
+    showToast("راهنما باز شد.", "معلم");
+  });
+
+  // ---------- buttons wiring ----------
+  startQuizBtn.addEventListener("click", ()=>{ switchMode("quiz"); startQuiz(); });
+  resetBtn.addEventListener("click", ()=>{
+    localStorage.removeItem(storeKey);
+    location.reload();
+  });
+
+  startSpeedBtn.addEventListener("click", ()=>{ switchMode("speed"); startSpeed(); });
+  stopSpeedBtn.addEventListener("click", ()=>{
+    if(state.mode!=="speed") return;
+    endSpeed();
+  });
+
+  startMatchBtn.addEventListener("click", ()=>{ switchMode("match"); startMatch(); });
+  reshuffleMatchBtn.addEventListener("click", ()=>{
+    if(state.mode!=="match" || !state.match.pairs.length){
+      showToast("اول پازل را بساز.", "پازل");
+      return;
+    }
+    renderMatch(state.match.pairs);
+    showToast("🎲 دوباره درهم‌ریزی شد.", "پازل");
+  });
+
+  // keyboard quick actions
+  document.addEventListener("keydown", (e)=>{
+    if(e.ctrlKey || e.metaKey || e.altKey) return;
+    if(e.code==="Space"){
+      if(state.mode==="quiz" && state.allowNext){
+        e.preventDefault();
+        nextQuizQuestion();
+      }
+    }
+  });
+
+  // init
+  updateTop();
+  switchMode("quiz");
+  showToast("سلام! یک حالت را انتخاب کن و شروع کن.", "شروع");
+
+})();
+</script>
+</body>
+  </html>
