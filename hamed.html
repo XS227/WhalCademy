@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>آموزش جدول ضرب – کلاس سوم</title>
+<style>
+body{margin:0;font-family:tahoma;background:#fff3f8;direction:rtl}
+header{background:#ff6fae;color:#fff;padding:15px;text-align:center;font-size:20px;font-weight:bold}
+.slides{display:flex;transition:transform .5s ease;direction:ltr}
+.slide{flex:0 0 100%;padding:20px;box-sizing:border-box;direction:rtl}
+nav{text-align:center;margin:10px}
+button{padding:10px 18px;border:none;border-radius:12px;background:#ff6fae;color:#fff;font-size:16px;margin:5px;cursor:pointer}
+button.secondary{background:#7b5cff}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 10px rgba(0,0,0,.1);max-width:520px;margin:20px auto;text-align:center}
+.status{margin-top:10px;color:#333;font-size:14px}
+input{padding:10px;font-size:18px;width:120px;text-align:center;border-radius:8px;border:1px solid #ccc}
+</style>
+</head>
+
+<body>
+<header>
+مدرسه بهار نور معرفت – کلاس سوم خانم سبقت
+</header>
+
+<nav>
+<button onclick="go(0)">خانه</button>
+<button onclick="go(1)">آموزش</button>
+<button onclick="go(2)">تمرین</button>
+<button onclick="go(3)">آزمون</button>
+</nav>
+
+<div class="slides" id="slides">
+
+<section class="slide">
+<div class="card">
+<h2>🌸 خوش آمدی 🌸</h2>
+<p>با هم جدول ضرب را یاد می‌گیریم، تمرین می‌کنیم و مطمئن می‌شویم بلدی 👌</p>
+</div>
+</section>
+
+<section class="slide">
+<div class="card">
+<h2>📘 آموزش جدول ضرب</h2>
+<p>عدد مورد نظر را انتخاب کن:</p>
+<div>
+<button onclick="teach(2)">۲</button>
+<button onclick="teach(3)">۳</button>
+<button onclick="teach(4)">۴</button>
+<button onclick="teach(5)">۵</button>
+<button onclick="teach(6)">۶</button>
+<button onclick="teach(7)">۷</button>
+<button onclick="teach(8)">۸</button>
+<button onclick="teach(9)">۹</button>
+</div>
+<p id="teachText" class="status"></p>
+<button class="secondary" onclick="speakTeach()">🔊 خواندن با صدا</button>
+<p id="audioStatus" class="status"></p>
+</div>
+</section>
+
+<section class="slide">
+<div class="card">
+<h2>✏️ تمرین</h2>
+<p id="qText"></p>
+<input id="answer" placeholder="جواب">
+<br><br>
+<button onclick="check()">بررسی</button>
+<button class="secondary" onclick="speakQuestion()">🔊 بپرس</button>
+<p id="result" class="status"></p>
+</div>
+</section>
+
+<section class="slide">
+<div class="card">
+<h2>📝 آزمون پایانی</h2>
+<p>سؤال‌ها تصادفی هستند. اگر تمرین را خوب انجام بدهی، عالی می‌شوی 🌟</p>
+<button onclick="startExam()">شروع آزمون</button>
+<p id="exam" class="status"></p>
+</div>
+</section>
+
+</div>
+
+<script>
+let idx=0;
+function go(i){
+  idx=i;
+  document.getElementById('slides').style.transform=`translateX(-${i*100}%)`;
+}
+
+let teachLines=[];
+function teach(n){
+  teachLines=[];
+  for(let i=1;i<=10;i++){
+    teachLines.push(`${n} ضربدر ${i} می‌شود ${n*i}`);
+  }
+  document.getElementById('teachText').innerText=teachLines.join('، ');
+}
+
+function speakTeach(){
+  const t=document.getElementById('teachText').innerText;
+  if(!t){alert('اول یک جدول را انتخاب کن');return;}
+  trySpeak(t);
+}
+
+let a,b;
+function newQ(){
+  a=2+Math.floor(Math.random()*8);
+  b=1+Math.floor(Math.random()*9);
+  document.getElementById('qText').innerText=`${a} × ${b} = ؟`;
+  document.getElementById('answer').value='';
+}
+newQ();
+
+function check(){
+  const v=parseInt(document.getElementById('answer').value);
+  document.getElementById('result').innerText=
+    (v===a*b)?'آفرین 👏 درست گفتی':'دوباره تلاش کن';
+  newQ();
+}
+
+function speakQuestion(){
+  trySpeak(document.getElementById('qText').innerText.replace('×','ضربدر'));
+}
+
+function startExam(){
+  document.getElementById('exam').innerText='آزمون فعال شد. از بخش تمرین استفاده کن.';
+}
+
+function trySpeak(text){
+  const st=document.getElementById('audioStatus');
+  if(!('speechSynthesis' in window)){
+    st.innerText='این مرورگر از صدا پشتیبانی نمی‌کند';
+    return;
+  }
+  st.innerText='در حال تلاش برای پخش صدا...';
+  const u=new SpeechSynthesisUtterance(text);
+  window.speechSynthesis.cancel();
+  u.onstart=()=>st.innerText='در حال پخش صدا 🔊';
+  u.onerror=()=>st.innerText='صدا در این دستگاه در دسترس نیست';
+  window.speechSynthesis.speak(u);
+}
+
+// تست‌های ساده
+console.assert(typeof go==='function','go ok');
+console.assert(typeof trySpeak==='function','speak ok');
+</script>
+</body>
+</html>
