@@ -1,0 +1,2 @@
+# WhalCademy
+Ai education
