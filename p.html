@@ -1,824 +1,775 @@
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>نمایندگی دکا پست</title>
+import React, { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  MapPin,
+  Phone,
+  Mail,
+  ExternalLink,
+  Calculator,
+  Truck,
+  Instagram,
+  MessageCircle,
+  Menu,
+  X,
+  ChevronDown,
+  Building2,
+  Globe,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 
-  <!-- Font (optional): Vazirmatn -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+/**
+ * DekkaPost — Departments / Branches Directory Page
+ * - RTL-first (Persian), but content can be mixed.
+ * - "Nord fylker" focused view + full Iran overview.
+ * - SEO/Leads hooks: hero, trust badges, CTAs, internal links.
+ * - Motion: Framer Motion for tasteful interactions.
+ *
+ * Integration note:
+ * Replace `fetchBranches()` to pull from your main source of truth.
+ */
 
-  <style>
-    :root{
-      --bg:#f6f7f9;
-      --card:#ffffff;
-      --text:#1f2937;
-      --muted:#6b7280;
-      --line:#e5e7eb;
-      --brand:#f59e0b;      /* orange */
-      --brand2:#fbbf24;
-      --shadow: 0 10px 30px rgba(0,0,0,.06);
-      --radius:16px;
-      --radius2:22px;
-      --max: 980px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: "Vazirmatn", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      padding-bottom: 78px; /* space for bottom nav */
-    }
-    a{color:inherit; text-decoration:none}
-    .container{max-width:var(--max); margin:0 auto; padding:16px}
+// ---------------------------
+// Links (as requested)
+// ---------------------------
+const LINKS = {
+  price: "https://price.dekapost.ir",
+  tracking: "https://tracking.dekapost.ir",
+  blog: "https://dekapost-gls.ir",
+  instagram: "https://instagram.com/dekapost_gls",
+  whatsapp: "https://wa.me/9891116609590", // replace with your WhatsApp number
+};
 
-    /* Top bar */
-    .topbar{
-      position:sticky; top:0; z-index:50;
-      background:#fff;
-      border-bottom:1px solid var(--line);
-    }
-    .topbar-inner{
-      display:flex; align-items:center; gap:12px;
-      padding:12px 16px;
-      max-width:var(--max); margin:0 auto;
-    }
-    .logo{
-      width:44px; height:44px;
-      border-radius:12px;
-      background:linear-gradient(135deg,#d1d5db,#9ca3af);
-      display:flex; align-items:center; justify-content:center;
-      font-weight:800; color:#111827;
-      flex:0 0 auto;
-    }
-    .title-wrap{min-width:0}
-    .title{
-      font-weight:800; font-size:16px; line-height:1.2;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .subtitle{
-      font-size:12px; color:var(--muted);
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      margin-top:4px;
-    }
+// ---------------------------
+// Sample data (replace with API)
+// Provinces + Cities + Branches
+// ---------------------------
+const SAMPLE_BRANCHES = [
+  // گیلان (Nord)
+  {
+    id: "gilan-lahijan",
+    province: "گیلان",
+    county: "لاهیجان",
+    city: "لاهیجان",
+    branchName: "نمایندگی دکا پست لاهیجان",
+    manager: "—",
+    phone: "09116609590",
+    tel: "01341216064",
+    email: "info@dekapost-gls.ir",
+    address:
+      "لاهیجان، میدان دانشگاه آزاد، بلوار ۴۵ متری دانشگاه، میدان تربیت، نبش کوچه سوم دانشجو، دفتر نمایندگی سردار جنگل لاهیجان",
+    hours: "۸ صبح تا ۲۰ شب",
+    services: ["ارسال بین‌شهری", "ارسال درون‌شهری", "پذیرش مرسولات فروشگاهی", "رهگیری مرسوله"],
+    tags: ["Nord", "پرفروش"],
+  },
+  { id: "gilan-rasht", province: "گیلان", county: "رشت", city: "رشت", branchName: "نمایندگی رشت", manager: "—", phone: "—", tel: "—", email: "—", address: "—", hours: "—", services: ["ارسال بین‌شهری", "پذیرش فروشگاهی"], tags: ["Nord"] },
+  { id: "gilan-astara", province: "گیلان", county: "آستارا", city: "آستارا", branchName: "نمایندگی آستارا", manager: "—", phone: "—", tel: "—", email: "—", address: "—", hours: "—", services: ["ارسال بین‌شهری"], tags: ["Nord"] },
+  { id: "gilan-anzali", province: "گیلان", county: "انزلی", city: "بندر انزلی", branchName: "نمایندگی بندر انزلی", manager: "—", phone: "—", tel: "—", email: "—", address: "—", hours: "—", services: ["ارسال بین‌شهری"], tags: ["Nord"] },
+  { id: "gilan-fouman", province: "گیلان", county: "فومن", city: "فومن", branchName: "نمایندگی فومن", manager: "—", phone: "—", tel: "—", email: "—", address: "—", hours: "—", services: ["ارسال درون‌شهری"], tags: ["Nord"] },
 
-    /* Info strip (optional like site header contact) */
-    .info-strip{
-      background:linear-gradient(90deg,var(--brand),var(--brand2));
-      color:#111827;
-      border-bottom:1px solid rgba(0,0,0,.06);
-    }
-    .info-strip .row{
-      max-width:var(--max); margin:0 auto;
-      padding:8px 16px;
-      display:flex; gap:12px; align-items:center; justify-content:space-between;
-      font-size:13px;
-    }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:6px 10px;
-      background:rgba(255,255,255,.35);
-      border:1px solid rgba(255,255,255,.35);
-      border-radius:999px;
-      backdrop-filter: blur(6px);
-    }
-    .icons{display:flex; gap:8px; align-items:center}
-    .iconbtn{
-      width:34px; height:34px; border-radius:10px;
-      background:rgba(255,255,255,.35);
-      border:1px solid rgba(255,255,255,.35);
-      display:flex; align-items:center; justify-content:center;
-      cursor:pointer;
-    }
+  // مازندران (Nord)
+  { id: "maz-sari", province: "مازندران", county: "ساری", city: "ساری", branchName: "نمایندگی ساری", manager: "—", phone: "—", tel: "—", email: "—", address: "—", hours: "—", services: ["ارسال بین‌شهری", "رهگیری"], tags: ["Nord"] },
+  { id: "maz-chalus", province: "مازندران", county: "چالوس", city: "چالوس", branchName: "نمایندگی چالوس", manager: "—", phone: "—", tel: "—", email: "—", address: "—", hours: "—", services: ["ارسال بین‌شهری"], tags: ["Nord"] },
+  { id: "maz-ramsar", province: "مازندران", county: "رامسر", city: "رامسر", branchName: "نمایندگی رامسر", manager: "—", phone: "—", tel: "—", email: "—", address: "—", hours: "—", services: ["ارسال بین‌شهری"], tags: ["Nord"] },
 
-    /* Cards / sections */
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius2);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .section{margin:14px 0}
-    .section h2{
-      margin:0 0 10px 0;
-      font-size:22px;
-      font-weight:900;
-      text-align:center;
-    }
-    .section .lead{
-      margin:0 auto 12px auto;
-      max-width: 52ch;
-      text-align:center;
-      color:var(--muted);
-      line-height:1.9;
-      font-size:14px;
-    }
+  // گلستان (Nord)
+  { id: "gol-gorgan", province: "گلستان", county: "گرگان", city: "گرگان", branchName: "نمایندگی گرگان", manager: "—", phone: "—", tel: "—", email: "—", address: "—", hours: "—", services: ["ارسال بین‌شهری"], tags: ["Nord"] },
+  { id: "gol-gonbad", province: "گلستان", county: "گنبدکاووس", city: "گنبدکاووس", branchName: "نمایندگی گنبدکاووس", manager: "—", phone: "—", tel: "—", email: "—", address: "—", hours: "—", services: ["ارسال بین‌شهری"], tags: ["Nord"] },
 
-    /* Hero */
-    .hero{
-      border-radius:var(--radius2);
-      overflow:hidden;
-      position:relative;
-      background:#111827;
-      box-shadow: var(--shadow);
-      border:1px solid rgba(255,255,255,.08);
-    }
-    .hero img{
-      width:100%; height:220px; object-fit:cover;
-      display:block; opacity:.92;
-    }
-    .hero-overlay{
-      position:absolute; inset:0;
-      background:linear-gradient(180deg, rgba(17,24,39,.15), rgba(17,24,39,.55));
-    }
-    .hero-content{
-      position:absolute; right:16px; left:16px; bottom:14px;
-      color:#fff;
-    }
-    .hero-content .kicker{
-      font-size:12px; opacity:.95;
-      display:inline-flex; align-items:center; gap:8px;
-      padding:6px 10px;
-      background:rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.18);
-      border-radius:999px;
-    }
-    .hero-content h1{
-      margin:10px 0 0 0;
-      font-size:26px;
-      font-weight:950;
-      letter-spacing:-.2px;
-    }
+  // Tehran (example outside Nord to show all Iran grouping)
+  { id: "tehran", province: "تهران", county: "تهران", city: "تهران", branchName: "نمایندگی تهران", manager: "—", phone: "—", tel: "—", email: "—", address: "—", hours: "—", services: ["ارسال بین‌المللی", "فروشگاهی"], tags: ["All"] },
+];
 
-    /* Slider */
-    .slider{
-      margin-top:14px;
-      padding:14px;
-    }
-    .slider-title{
-      text-align:center;
-      font-size:28px;
-      font-weight:950;
-      margin:4px 0 14px 0;
-    }
-    .carousel{
-      position:relative;
-      border:1px dashed rgba(245,158,11,.7);
-      border-radius:18px;
-      padding:18px 52px;
-      background:linear-gradient(180deg, rgba(245,158,11,.08), rgba(245,158,11,.03));
-      min-height:120px;
-      display:flex; align-items:center; justify-content:center;
-      text-align:center;
-    }
-    .carousel .item{
-      display:none;
-      width:100%;
-    }
-    .carousel .item.active{display:block}
-    .carousel .big-ico{
-      width:62px; height:62px;
-      margin:0 auto 10px auto;
-      border-radius:18px;
-      border:2px solid rgba(31,41,55,.2);
-      display:flex; align-items:center; justify-content:center;
-      background:#fff;
-    }
-    .carousel .caption{
-      font-size:14px;
-      color:#111827;
-      font-weight:700;
-    }
-    .navbtn{
-      position:absolute; top:50%; transform:translateY(-50%);
-      width:38px; height:38px; border-radius:12px;
-      background:#fff;
-      border:1px solid var(--line);
-      box-shadow: 0 8px 18px rgba(0,0,0,.08);
-      display:flex; align-items:center; justify-content:center;
-      cursor:pointer;
-      user-select:none;
-    }
-    .navbtn.prev{right:10px}
-    .navbtn.next{left:10px}
-    .dots{
-      display:flex; justify-content:center; gap:8px;
-      margin-top:10px;
-    }
-    .dot{
-      width:8px; height:8px; border-radius:999px;
-      background:#d1d5db;
-      cursor:pointer;
-    }
-    .dot.active{background:var(--brand)}
+async function fetchBranches() {
+  // Replace with your real endpoint (main site as source-of-truth)
+  // Example:
+  // const res = await fetch("https://dekapost.com/api/branches");
+  // return await res.json();
+  await new Promise((r) => setTimeout(r, 250));
+  return SAMPLE_BRANCHES;
+}
 
-    /* FAQ accordion (matches your screenshot list) */
-    .faq{
-      padding:14px;
-    }
-    .faq h2{margin-bottom:14px}
-    .acc{
-      display:flex; flex-direction:column; gap:10px;
-    }
-    .acc-item{
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:14px;
-      overflow:hidden;
-    }
-    .acc-btn{
-      width:100%;
-      border:0;
-      background:transparent;
-      padding:14px 14px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      cursor:pointer;
-      font-family:inherit;
-      text-align:right;
-      font-weight:800;
-      color:#111827;
-    }
-    .chev{
-      width:28px; height:28px;
-      border-radius:10px;
-      border:1px solid var(--line);
-      display:flex; align-items:center; justify-content:center;
-      flex:0 0 auto;
-      color:#111827;
-      background:#fff;
-      transition:transform .2s ease;
-    }
-    .acc-item.open .chev{transform:rotate(180deg)}
-    .acc-panel{
-      display:none;
-      padding:0 14px 14px 14px;
-      color:var(--muted);
-      line-height:1.9;
-      font-size:14px;
-    }
-    .acc-item.open .acc-panel{display:block}
+// ---------------------------
+// UI helpers
+// ---------------------------
+function classNames(...xs) {
+  return xs.filter(Boolean).join(" ");
+}
 
-    /* About block (with CTA button) */
-    .about{
-      padding:16px;
-      position:relative;
-      overflow:hidden;
-    }
-    .about-bg{
-      position:absolute; inset:-40px -40px auto auto;
-      width:220px; height:220px;
-      background:radial-gradient(circle at 30% 30%, rgba(245,158,11,.25), rgba(245,158,11,0));
-      pointer-events:none;
-    }
-    .cta{
-      margin-top:12px;
-      display:flex; justify-content:center;
-    }
-    .btn{
-      border:0;
-      border-radius:14px;
-      padding:12px 16px;
-      font-family:inherit;
-      font-weight:900;
-      cursor:pointer;
-    }
-    .btn-primary{
-      background:linear-gradient(90deg,var(--brand),var(--brand2));
-      color:#111827;
-      box-shadow: 0 12px 24px rgba(245,158,11,.25);
-    }
+function Badge({ children }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold">
+      <Sparkles className="h-3.5 w-3.5" />
+      {children}
+    </span>
+  );
+}
 
-    /* Cooperation form */
-    .form{
-      padding:16px;
-    }
-    .form-grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:12px;
-      margin-top:12px;
-    }
-    label{
-      display:block;
-      font-size:13px;
-      color:var(--muted);
-      margin-bottom:6px;
-      font-weight:700;
-    }
-    input, select, textarea{
-      width:100%;
-      padding:12px 12px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      outline:none;
-      font-family:inherit;
-      font-size:14px;
-      background:#fff;
-    }
-    textarea{min-height:92px; resize:vertical}
-    .form-actions{
-      margin-top:12px;
-      display:flex;
-      justify-content:center;
-    }
-    .btn-wide{
-      width:100%;
-      max-width: 420px;
-      padding:14px 16px;
-      border-radius:16px;
-      font-size:15px;
-    }
+function LinkButton({ href, icon: Icon, children, variant = "primary" }) {
+  const base =
+    "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold transition active:scale-[0.99]";
+  const styles =
+    variant === "primary"
+      ? "bg-emerald-600 text-white hover:bg-emerald-700"
+      : variant === "ghost"
+      ? "bg-white/10 text-white hover:bg-white/15"
+      : "bg-white text-emerald-800 hover:bg-emerald-50";
+  return (
+    <a className={classNames(base, styles)} href={href} target="_blank" rel="noreferrer">
+      {Icon ? <Icon className="h-4 w-4" /> : null}
+      {children}
+      <ExternalLink className="h-4 w-4 opacity-70" />
+    </a>
+  );
+}
 
-    /* Contact section */
-    .contact{
-      padding:16px;
-    }
-    .kv{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      margin-top:10px;
-    }
-    .kv-row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:12px;
-      border:1px dashed var(--line);
-      border-radius:14px;
-      background:#fff;
-    }
-    .kv-row .k{color:var(--muted); font-weight:800; font-size:13px}
-    .kv-row .v{font-weight:900}
-    .hr{
-      height:1px; background:var(--line); margin:14px 0;
-    }
-    .enamad{
-      display:flex; justify-content:center;
-      margin-top:10px;
-    }
-    .enamad .badge{
-      width:180px; height:180px;
-      border:1px solid var(--line);
-      border-radius:18px;
-      background:#fff;
-      display:flex; align-items:center; justify-content:center;
-      color:var(--muted);
-      font-weight:900;
-    }
+function SectionTitle({ title, subtitle }) {
+  return (
+    <div className="mx-auto max-w-4xl text-center">
+      <h2 className="text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
+      {subtitle ? <p className="mt-3 text-sm leading-7 text-slate-600">{subtitle}</p> : null}
+    </div>
+  );
+}
 
-    /* Footer bar (orange copyright strip) */
-    .footer-strip{
-      margin-top:14px;
-      padding:10px 12px;
-      background:linear-gradient(90deg,var(--brand),var(--brand2));
-      color:#111827;
-      font-size:12px;
-      text-align:center;
-      border-radius:18px;
-      border:1px solid rgba(0,0,0,.06);
-    }
+function Chip({ children }) {
+  return (
+    <span className="inline-flex items-center rounded-full border bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+      {children}
+    </span>
+  );
+}
 
-    /* Bottom nav */
-    .bottom-nav{
-      position:fixed;
-      left:0; right:0; bottom:0;
-      height:66px;
-      background:#fff;
-      border-top:1px solid var(--line);
-      display:flex;
-      z-index:60;
-    }
-    .nav-item{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:6px;
-      font-size:11px;
-      color:var(--muted);
-      cursor:pointer;
-      user-select:none;
-    }
-    .nav-item.active{color:var(--brand)}
-    .nav-ico{
-      width:22px; height:22px;
-      border-radius:8px;
-      border:1px solid var(--line);
-      display:flex; align-items:center; justify-content:center;
-      background:#fff;
-      font-weight:900;
-    }
-
-    /* Floating WhatsApp */
-    .fab{
-      position:fixed;
-      left:16px;
-      bottom:86px;
-      width:54px; height:54px;
-      border-radius:18px;
-      background:linear-gradient(180deg,var(--brand),var(--brand2));
-      box-shadow: 0 14px 26px rgba(245,158,11,.35);
-      border:1px solid rgba(0,0,0,.06);
-      display:flex; align-items:center; justify-content:center;
-      z-index:70;
-      cursor:pointer;
-    }
-    .fab span{font-weight:950; font-size:18px}
-
-    /* Simple page router */
-    .page{display:none}
-    .page.active{display:block}
-
-    /* Responsive tweaks */
-    @media (min-width: 720px){
-      .hero img{height:280px}
-      .form-grid{
-        grid-template-columns: 1fr 1fr;
-      }
-      .form-grid .full{grid-column: 1 / -1}
-      .slider-title{font-size:34px}
-    }
-  </style>
-</head>
-
-<body>
-
-  <!-- Top -->
-  <div class="topbar">
-    <div class="topbar-inner">
-      <div class="logo">DK</div>
-      <div class="title-wrap">
-        <div class="title">دکاپست نمایندگی سردار جنگل لاهیجان</div>
-        <div class="subtitle">شبکه حمل‌ونقل و ارسال مرسولات</div>
+function IconPill({ icon: Icon, label, value }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border bg-white px-4 py-3">
+      <div className="flex h-10 w-10 items-center justify-center rounded-2xl border bg-slate-50">
+        <Icon className="h-5 w-5" />
+      </div>
+      <div className="min-w-0">
+        <div className="text-xs font-semibold text-slate-500">{label}</div>
+        <div className="truncate text-sm font-black text-slate-900">{value}</div>
       </div>
     </div>
+  );
+}
 
-    <div class="info-strip">
-      <div class="row">
-        <div class="pill">۰۹۱۱۱۴۴۹۱۱۷</div>
-        <div class="pill">۸ صبح تا ۲۰ شب</div>
-        <div class="icons">
-          <div class="iconbtn" title="Telegram">T</div>
-          <div class="iconbtn" title="Call">☎</div>
-          <div class="iconbtn" title="Instagram">IG</div>
+// ---------------------------
+// Mega menu like Tipax (overlay)
+// ---------------------------
+function MegaMenu({ open, onClose }) {
+  return (
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          className="fixed inset-0 z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="absolute inset-0 bg-emerald-900" />
+
+          <div className="relative mx-auto max-w-6xl px-6 py-8 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/15 bg-white/10 font-black">
+                  DK
+                </div>
+                <div>
+                  <div className="text-sm font-black">DekkaPost</div>
+                  <div className="text-xs text-white/70">منوی دسترسی سریع و صفحات کلیدی</div>
+                </div>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="rounded-2xl border border-white/15 bg-white/10 p-3 hover:bg-white/15"
+                aria-label="close"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="mt-10 grid grid-cols-1 gap-10 md:grid-cols-5">
+              <div className="space-y-3">
+                <div className="text-sm font-black">درباره ما</div>
+                <MenuLink title="سخن مدیرعامل" />
+                <MenuLink title="معرفی مدیران" />
+                <MenuLink title="مسئولیت‌های اجتماعی" />
+                <MenuLink title="تماس با ما" />
+                <MenuLink title="گالری" />
+              </div>
+
+              <div className="space-y-3">
+                <div className="text-sm font-black">خدمات</div>
+                <MenuLink title="ارسال درون‌شهری" />
+                <MenuLink title="ارسال بین‌شهری" />
+                <MenuLink title="ارسال بین‌الملل" />
+                <MenuLink title="باکس‌لاین" />
+              </div>
+
+              <div className="space-y-3">
+                <div className="text-sm font-black">خدمات تکمیلی</div>
+                <MenuLink title="بسته‌بندی" />
+                <MenuLink title="لاکر هوشمند" />
+                <MenuLink title="پرداخت در محل" />
+                <MenuLink title="پس‌کرایه" />
+                <MenuLink title="جبران خسارت" />
+              </div>
+
+              <div className="space-y-3">
+                <div className="text-sm font-black">ثبت و پیگیری شکایت</div>
+                <MenuLink title="ثبت شکایت" />
+                <MenuLink title="ارسال مستندات" />
+                <MenuLink title="پیگیری شکایت" />
+                <MenuLink title="تاییدیه مبلغ جبران" />
+              </div>
+
+              <div className="space-y-3">
+                <div className="text-sm font-black">قوانین و راهنما</div>
+                <MenuLink title="ویدیوهای آموزشی" />
+                <MenuLink title="سوالات متداول" />
+                <MenuLink title="قوانین و مقررات" />
+                <MenuLink title="ممنوعات ارسال" />
+                <MenuLink title="حریم خصوصی" />
+              </div>
+            </div>
+
+            <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+              <div className="rounded-3xl border border-white/15 bg-white/10 p-6">
+                <div className="text-sm font-black">دسترسی سریع</div>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <a className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-emerald-900" href={LINKS.tracking} target="_blank" rel="noreferrer">رهگیری مرسوله</a>
+                  <a className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-emerald-900" href={LINKS.price} target="_blank" rel="noreferrer">محاسبه قیمت</a>
+                  <a className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-emerald-900" href={LINKS.blog} target="_blank" rel="noreferrer">وبلاگ</a>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-white/15 bg-white/10 p-6">
+                <div className="text-sm font-black">تماس</div>
+                <div className="mt-3 space-y-2 text-sm text-white/85">
+                  <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> 021-8457</div>
+                  <div className="flex items-center gap-2"><MessageCircle className="h-4 w-4" /> واتساپ: 0911xxxxxxx</div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-white/15 bg-white/10 p-6">
+                <div className="text-sm font-black">شبکه‌های اجتماعی</div>
+                <div className="mt-3 flex items-center gap-3">
+                  <a className="rounded-2xl border border-white/15 bg-white/10 p-3 hover:bg-white/15" href={LINKS.instagram} target="_blank" rel="noreferrer" aria-label="instagram">
+                    <Instagram className="h-5 w-5" />
+                  </a>
+                  <a className="rounded-2xl border border-white/15 bg-white/10 p-3 hover:bg-white/15" href={LINKS.whatsapp} target="_blank" rel="noreferrer" aria-label="whatsapp">
+                    <MessageCircle className="h-5 w-5" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+function MenuLink({ title }) {
+  return (
+    <a className="block rounded-2xl px-3 py-2 text-sm font-semibold text-white/85 hover:bg-white/10 hover:text-white" href="#">
+      {title}
+    </a>
+  );
+}
+
+// ---------------------------
+// Branch card
+// ---------------------------
+function BranchCard({ b }) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      transition={{ duration: 0.2 }}
+      className="group rounded-3xl border bg-white p-5 shadow-sm hover:shadow-md"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="truncate text-base font-black">{b.branchName}</h3>
+            {b.tags?.includes("پرفروش") ? <Badge>پرفروش</Badge> : null}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Chip>{b.province}</Chip>
+            <Chip>{b.county}</Chip>
+            <Chip>{b.city}</Chip>
+          </div>
+        </div>
+
+        <div className="flex h-12 w-12 items-center justify-center rounded-3xl border bg-slate-50">
+          <Building2 className="h-6 w-6" />
         </div>
       </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <IconPill icon={MapPin} label="آدرس" value={b.address || "—"} />
+        <IconPill icon={Phone} label="تلفن" value={b.phone && b.phone !== "—" ? b.phone : b.tel || "—"} />
+        <IconPill icon={Mail} label="ایمیل" value={b.email || "—"} />
+        <IconPill icon={ShieldCheck} label="ساعت کاری" value={b.hours || "—"} />
+      </div>
+
+      <div className="mt-4">
+        <div className="text-xs font-bold text-slate-500">خدمات</div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {(b.services || []).slice(0, 6).map((s) => (
+            <span key={s} className="rounded-2xl border bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+              {s}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-3">
+        <a
+          className="inline-flex items-center gap-2 rounded-2xl border bg-white px-4 py-2 text-sm font-black text-slate-900 hover:bg-slate-50"
+          href={LINKS.tracking}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <Truck className="h-4 w-4" /> رهگیری
+        </a>
+        <a
+          className="inline-flex items-center gap-2 rounded-2xl border bg-white px-4 py-2 text-sm font-black text-slate-900 hover:bg-slate-50"
+          href={LINKS.price}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <Calculator className="h-4 w-4" /> محاسبه قیمت
+        </a>
+        <a
+          className="inline-flex items-center gap-2 rounded-2xl border bg-emerald-600 px-4 py-2 text-sm font-black text-white hover:bg-emerald-700"
+          href={LINKS.whatsapp}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <MessageCircle className="h-4 w-4" /> واتساپ
+        </a>
+      </div>
+    </motion.div>
+  );
+}
+
+// ---------------------------
+// Province accordion
+// ---------------------------
+function ProvinceAccordion({ province, branches }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-3xl border bg-white shadow-sm">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-4 p-5"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-3xl border bg-slate-50">
+            <Globe className="h-5 w-5" />
+          </div>
+          <div className="text-right">
+            <div className="text-base font-black">{province}</div>
+            <div className="text-xs font-semibold text-slate-500">{branches.length} نمایندگی</div>
+          </div>
+        </div>
+        <ChevronDown className={classNames("h-5 w-5 transition", open ? "rotate-180" : "")} />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open ? (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            <div className="grid gap-4 p-5 pt-0 sm:grid-cols-2">
+              {branches.map((b) => (
+                <BranchCard key={b.id} b={b} />
+              ))}
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
-  </div>
+  );
+}
 
-  <main class="container">
+// ---------------------------
+// Main page
+// ---------------------------
+export default function DekkaPostNordDirectory() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [branches, setBranches] = useState([]);
+  const [q, setQ] = useState("");
+  const [scope, setScope] = useState("north"); // north | all
 
-    <!-- HERO -->
-    <div class="hero section">
-      <!-- Replace src with your real image -->
-      <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=1600&auto=format&fit=crop" alt="Hero">
-      <div class="hero-overlay"></div>
-      <div class="hero-content">
-        <div class="kicker">dekapost-gls.ir</div>
-        <h1>چرا دکا پست لاهیجان</h1>
-      </div>
-    </div>
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      const data = await fetchBranches();
+      if (!mounted) return;
+      setBranches(data);
+      setLoading(false);
+    })();
+    return () => (mounted = false);
+  }, []);
 
-    <!-- PAGES -->
-    <!-- PAGE: Home -->
-    <section id="page-home" class="page active">
+  const northProvinces = useMemo(() => new Set(["گیلان", "مازندران", "گلستان"]), []);
 
-      <div class="card slider section">
-        <div class="slider-title">چرا دکا پست لاهیجان</div>
+  const scopedBranches = useMemo(() => {
+    const base = scope === "north" ? branches.filter((b) => northProvinces.has(b.province)) : branches;
+    const term = q.trim();
+    if (!term) return base;
+    const t = term.toLowerCase();
+    return base.filter((b) =>
+      [b.branchName, b.province, b.county, b.city, b.address].filter(Boolean).some((x) => String(x).toLowerCase().includes(t))
+    );
+  }, [branches, q, scope, northProvinces]);
 
-        <div class="carousel" id="carousel">
-          <div class="navbtn prev" id="prevBtn">›</div>
-          <div class="navbtn next" id="nextBtn">‹</div>
+  const groupedByProvince = useMemo(() => {
+    const map = new Map();
+    for (const b of scopedBranches) {
+      const key = b.province || "—";
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(b);
+    }
+    // stable sort
+    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0], "fa"));
+  }, [scopedBranches]);
 
-          <div class="item active">
-            <div class="big-ico">🚚</div>
-            <div class="caption">ارسال بین شهری</div>
+  const totalCount = scopedBranches.length;
+
+  return (
+    <div dir="rtl" className="min-h-screen bg-slate-50 text-slate-900">
+      <MegaMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+
+      {/* Top header */}
+      <header className="sticky top-0 z-40 border-b bg-white/85 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-3xl border bg-slate-50 font-black">
+              DK
+            </div>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-black">DekkaPost — نمایندگی‌ها</div>
+              <div className="truncate text-xs font-semibold text-slate-500">
+                طراحی فروش‌محور برای لید، سئو و تجربه کاربری
+              </div>
+            </div>
           </div>
 
-          <div class="item">
-            <div class="big-ico">🏙</div>
-            <div class="caption">ارسال درون‌شهری</div>
-          </div>
+          <div className="flex items-center gap-2">
+            <a
+              className="hidden rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50 md:inline-flex"
+              href={LINKS.blog}
+              target="_blank"
+              rel="noreferrer"
+            >
+              وبلاگ
+            </a>
+            <a
+              className="hidden rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50 md:inline-flex"
+              href={LINKS.tracking}
+              target="_blank"
+              rel="noreferrer"
+            >
+              رهگیری
+            </a>
+            <a
+              className="hidden rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50 md:inline-flex"
+              href={LINKS.price}
+              target="_blank"
+              rel="noreferrer"
+            >
+              محاسبه قیمت
+            </a>
 
-          <div class="item">
-            <div class="big-ico">📦</div>
-            <div class="caption">پذیرش مرسولات فروشگاهی</div>
-          </div>
-
-          <div class="item">
-            <div class="big-ico">🌍</div>
-            <div class="caption">ارسال بین‌المللی</div>
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="inline-flex items-center gap-2 rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50"
+            >
+              <Menu className="h-5 w-5" />
+              منو
+            </button>
           </div>
         </div>
+      </header>
 
-        <div class="dots" id="dots"></div>
-      </div>
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-emerald-900" />
+        <div className="absolute inset-0 opacity-35" style={{
+          backgroundImage:
+            "radial-gradient(circle at 20% 20%, rgba(255,255,255,.25), transparent 40%), radial-gradient(circle at 80% 30%, rgba(255,255,255,.18), transparent 35%), radial-gradient(circle at 50% 85%, rgba(255,255,255,.12), transparent 45%)",
+        }} />
 
-      <div class="card about section">
-        <div class="about-bg"></div>
-        <h2 style="text-align:center;margin:0 0 10px 0;">درباره دکا پست</h2>
-        <p class="lead" style="max-width:none;text-align:right;">
-          برند دکا پست در سال ۱۴۰۲ فعالیت خود را با اخذ کلیه مجوزات و پروانه‌های قانونی آغاز کرده است.
-          دکا پست با تکیه بر مشتری‌مداری و رعایت حقوق مشتریان، خدمات ارسال مرسوله را به صورت داخلی و بین‌المللی ارائه می‌کند.
-        </p>
-        <div class="cta">
-          <button class="btn btn-primary" data-goto="cooperate">درخواست همکاری</button>
-        </div>
-      </div>
-    </section>
+        <div className="relative mx-auto max-w-6xl px-6 py-12 text-white sm:py-16">
+          <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold">
+                <Sparkles className="h-4 w-4" />
+                صفحه نمایندگی‌های دکا پست — تمرکز روی شمال کشور
+              </div>
+              <h1 className="mt-4 text-3xl font-black leading-tight sm:text-4xl">
+                دسترسی سریع به اطلاعات نمایندگی‌ها در ایران
+              </h1>
+              <p className="mt-4 text-sm leading-7 text-white/85">
+                این صفحه برای سئو و لید طراحی شده: مسیر سریع برای رهگیری، محاسبه قیمت، تماس واتساپ و پیدا کردن نزدیک‌ترین نمایندگی در
+                استان‌ها و شهرستان‌ها.
+              </p>
 
-    <!-- PAGE: FAQ -->
-    <section id="page-faq" class="page">
-      <div class="card faq section">
-        <h2>سوالات متداول</h2>
-
-        <div class="acc" id="faqAcc">
-          <div class="acc-item">
-            <button class="acc-btn" type="button">
-              <span>ساعت کاری نمایندگی دکا پست لاهیجان به چه صورتی است؟</span>
-              <span class="chev">⌄</span>
-            </button>
-            <div class="acc-panel">
-              ساعت کاری را اینجا وارد کنید. مثال: همه‌روزه از ۸ صبح تا ۲۰ شب (به‌جز ایام تعطیل).
+              <div className="mt-6 flex flex-wrap gap-3">
+                <LinkButton href={LINKS.tracking} icon={Truck} variant="primary">
+                  رهگیری مرسوله
+                </LinkButton>
+                <LinkButton href={LINKS.price} icon={Calculator} variant="light">
+                  محاسبه قیمت
+                </LinkButton>
+                <LinkButton href={LINKS.blog} icon={ExternalLink} variant="ghost">
+                  بلاگ
+                </LinkButton>
+                <LinkButton href={LINKS.instagram} icon={Instagram} variant="ghost">
+                  اینستاگرام @dekapost_gls
+                </LinkButton>
+              </div>
             </div>
-          </div>
 
-          <div class="acc-item">
-            <button class="acc-btn" type="button">
-              <span>چه نوع مرسولاتی را دکا پست می‌پذیرد؟</span>
-              <span class="chev">⌄</span>
-            </button>
-            <div class="acc-panel">
-              توضیح درباره انواع مرسولات مجاز/غیرمجاز، کالاهای شکستنی، مایعات، مواد خطرناک و غیره.
-            </div>
-          </div>
-
-          <div class="acc-item">
-            <button class="acc-btn" type="button">
-              <span>زمان تحویل مرسولات در دکا پست چگونه است؟</span>
-              <span class="chev">⌄</span>
-            </button>
-            <div class="acc-panel">
-              بازه‌های زمانی تحویل بر اساس مقصد (درون‌شهری/بین‌شهری/بین‌المللی) را اینجا درج کنید.
-            </div>
-          </div>
-
-          <div class="acc-item">
-            <button class="acc-btn" type="button">
-              <span>تعهدات دکا پست در خصوص دقت و سلامت در تحویل مرسولات چیست؟</span>
-              <span class="chev">⌄</span>
-            </button>
-            <div class="acc-panel">
-              سیاست بیمه/جبران خسارت، بسته‌بندی استاندارد، رهگیری و تایید تحویل را اینجا وارد کنید.
-            </div>
-          </div>
-
-          <div class="acc-item">
-            <button class="acc-btn" type="button">
-              <span>به لحاظ وزن و حجم آیا محدودیتی در پذیرش مرسولات وجود دارد؟</span>
-              <span class="chev">⌄</span>
-            </button>
-            <div class="acc-panel">
-              محدودیت وزن/ابعاد و شرایط مرسولات خاص (بار سنگین، حجیم) را مشخص کنید.
+            <div className="grid w-full max-w-xl gap-3 sm:grid-cols-2">
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-white/15 bg-white/10 p-5">
+                <div className="text-xs font-bold text-white/75">نمایندگی‌ها</div>
+                <div className="mt-1 text-3xl font-black">{loading ? "…" : totalCount}</div>
+                <div className="mt-2 text-xs text-white/75">در محدوده انتخابی</div>
+              </motion.div>
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="rounded-3xl border border-white/15 bg-white/10 p-5">
+                <div className="text-xs font-bold text-white/75">لید سریع</div>
+                <div className="mt-1 text-base font-black">واتساپ و تماس مستقیم</div>
+                <div className="mt-2 text-xs text-white/75">CTA همیشه در دسترس</div>
+              </motion.div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- PAGE: Cooperate -->
-    <section id="page-cooperate" class="page">
-      <div class="card section">
-        <div class="form">
-          <h2>درخواست همکاری با ما</h2>
-          <p class="lead" style="max-width:none;text-align:right;">
-            اگر صاحب فروشگاه یا کسب‌وکاری هستید و به دنبال یک راهکار مطمئن و حرفه‌ای برای ارسال بسته‌های مشتریان خود می‌گردید،
-            ما آماده‌ایم تا در این مسیر همراه شما باشیم.
-          </p>
+      {/* Controls */}
+      <section className="mx-auto max-w-6xl px-6 py-10">
+        <SectionTitle
+          title={scope === "north" ? "نمایندگی‌های شمال کشور" : "همه نمایندگی‌ها در ایران"}
+          subtitle="استان → شهرستان/شهر → اطلاعات نمایندگی. برای سرچ سریع نام شهر/شهرستان را وارد کنید."
+        />
 
-          <!-- Optional image block like screenshot -->
-          <div style="margin:12px 0;">
-            <div style="border-radius:18px; overflow:hidden; border:1px solid var(--line); background:#fff;">
-              <img
-                src="https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=80&w=1600&auto=format&fit=crop"
-                alt="Cooperate"
-                style="width:100%; height:240px; object-fit:cover; display:block;"
+        <div className="mt-8 grid gap-4 md:grid-cols-12">
+          <div className="md:col-span-7">
+            <div className="flex items-center gap-3 rounded-3xl border bg-white px-4 py-3 shadow-sm">
+              <Search className="h-5 w-5 text-slate-500" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="جستجو: استان، شهرستان، شهر، نام نمایندگی یا آدرس…"
+                className="w-full bg-transparent text-sm font-semibold outline-none"
               />
             </div>
           </div>
 
-          <form id="cooperateForm">
-            <div class="form-grid">
-              <div class="full">
-                <label>نام و نام خانوادگی</label>
-                <input name="fullName" placeholder="مثال: علی رضایی" required>
+          <div className="md:col-span-5">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setScope("north")}
+                className={classNames(
+                  "rounded-3xl border px-4 py-3 text-sm font-black shadow-sm",
+                  scope === "north" ? "bg-emerald-600 text-white" : "bg-white hover:bg-slate-50"
+                )}
+              >
+                Nord fylker
+              </button>
+              <button
+                onClick={() => setScope("all")}
+                className={classNames(
+                  "rounded-3xl border px-4 py-3 text-sm font-black shadow-sm",
+                  scope === "all" ? "bg-emerald-600 text-white" : "bg-white hover:bg-slate-50"
+                )}
+              >
+                کل ایران
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="mt-8">
+          {loading ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-56 animate-pulse rounded-3xl border bg-white" />
+              ))}
+            </div>
+          ) : groupedByProvince.length === 0 ? (
+            <div className="rounded-3xl border bg-white p-8 text-center shadow-sm">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-3xl border bg-slate-50">
+                <Search className="h-6 w-6" />
+              </div>
+              <div className="mt-3 text-base font-black">نتیجه‌ای یافت نشد</div>
+              <div className="mt-2 text-sm text-slate-600">عبارت جستجو را تغییر دهید یا محدوده را روی «کل ایران» قرار دهید.</div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {groupedByProvince.map(([province, bs]) => (
+                <ProvinceAccordion key={province} province={province} branches={bs} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Conversion strip */}
+        <div className="mt-10 rounded-3xl border bg-white p-6 shadow-sm">
+          <div className="grid gap-6 md:grid-cols-3 md:items-center">
+            <div className="md:col-span-2">
+              <div className="inline-flex items-center gap-2 rounded-full border bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">
+                <ShieldCheck className="h-4 w-4" />
+                مسیر سریع برای مشتریان فروشگاهی
+              </div>
+              <div className="mt-3 text-xl font-black">برای ارسال روزانه بسته‌ها، همین الان شروع کنید</div>
+              <div className="mt-2 text-sm leading-7 text-slate-600">
+                اگر فروشگاه دارید، از محاسبه قیمت شروع کنید، سپس نزدیک‌ترین نمایندگی را پیدا کنید. رهگیری هم همیشه در دسترس است.
+              </div>
+            </div>
+            <div className="flex flex-col gap-3">
+              <a className="rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white hover:bg-emerald-700" href={LINKS.price} target="_blank" rel="noreferrer">
+                محاسبه قیمت
+              </a>
+              <a className="rounded-2xl border bg-white px-4 py-3 text-center text-sm font-black hover:bg-slate-50" href={LINKS.tracking} target="_blank" rel="noreferrer">
+                رهگیری مرسوله
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer (mega-footer menu) */}
+      <footer className="border-t bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="grid gap-10 md:grid-cols-12">
+            <div className="md:col-span-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-3xl border bg-slate-50 font-black">
+                  DK
+                </div>
+                <div>
+                  <div className="text-sm font-black">DekkaPost</div>
+                  <div className="text-xs font-semibold text-slate-500">شبکه ارسال مرسولات — طراحی برای رشد</div>
+                </div>
               </div>
 
-              <div>
-                <label>شماره تماس</label>
-                <input name="phone" placeholder="مثال: 0912xxxxxxx" inputmode="tel" required>
-              </div>
+              <p className="mt-4 text-sm leading-7 text-slate-600">
+                دسترسی مستقیم به محاسبه قیمت، رهگیری، وبلاگ و شبکه‌های اجتماعی. این ساختار برای سئو (صفحات استان/شهرستان) و تبدیل لید
+                طراحی شده است.
+              </p>
 
-              <div>
-                <label>نام فروشگاه</label>
-                <input name="shopName" placeholder="مثال: فروشگاه نمونه">
-              </div>
-
-              <div class="full">
-                <label>آدرس فروشگاه</label>
-                <input name="shopAddress" placeholder="آدرس کامل">
-              </div>
-
-              <div>
-                <label>نوع محصولات شما</label>
-                <input name="productType" placeholder="مثال: پوشاک، لوازم دیجیتال، ...">
-              </div>
-
-              <div>
-                <label>تعداد تقریبی بسته‌های ارسالی روزانه</label>
-                <select name="dailyCount" required>
-                  <option value="" disabled selected>انتخاب کنید</option>
-                  <option>کمتر از ۱۰ عدد</option>
-                  <option>۱۰ تا ۳۰ عدد</option>
-                  <option>۳۰ تا ۸۰ عدد</option>
-                  <option>بیشتر از ۸۰ عدد</option>
-                </select>
-              </div>
-
-              <div class="full">
-                <label>توضیحات تکمیلی (اختیاری)</label>
-                <textarea name="notes" placeholder="هر نکته‌ای که لازم است بدانیم..."></textarea>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <a className="rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50" href={LINKS.blog} target="_blank" rel="noreferrer">
+                  وبلاگ
+                </a>
+                <a className="rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50" href={LINKS.instagram} target="_blank" rel="noreferrer">
+                  اینستاگرام
+                </a>
+                <a className="rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-black text-white hover:bg-emerald-700" href={LINKS.whatsapp} target="_blank" rel="noreferrer">
+                  واتساپ
+                </a>
               </div>
             </div>
 
-            <div class="form-actions">
-              <button class="btn btn-primary btn-wide" type="submit">ارسال</button>
+            <div className="md:col-span-8">
+              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                <FooterCol title="دسترسی سریع">
+                  <FooterLink href={LINKS.tracking} label="رهگیری مرسوله" />
+                  <FooterLink href={LINKS.price} label="محاسبه قیمت" />
+                  <FooterLink href={LINKS.blog} label="وبلاگ" />
+                  <FooterLink href="#" label="نمایندگی‌ها" />
+                </FooterCol>
+
+                <FooterCol title="خدمات">
+                  <FooterLink href="#" label="ارسال درون‌شهری" />
+                  <FooterLink href="#" label="ارسال بین‌شهری" />
+                  <FooterLink href="#" label="ارسال بین‌المللی" />
+                  <FooterLink href="#" label="بسته‌بندی" />
+                </FooterCol>
+
+                <FooterCol title="مشتریان فروشگاهی">
+                  <FooterLink href="#" label="درخواست همکاری" />
+                  <FooterLink href="#" label="سوالات متداول" />
+                  <FooterLink href="#" label="قوانین و مقررات" />
+                  <FooterLink href="#" label="جبران خسارت" />
+                </FooterCol>
+
+                <FooterCol title="ارتباط با ما">
+                  <FooterLink href={LINKS.whatsapp} label="واتساپ" />
+                  <FooterLink href={LINKS.instagram} label="@dekapost_gls" />
+                  <FooterLink href="#" label="تماس" />
+                  <FooterLink href="#" label="آدرس‌ها" />
+                </FooterCol>
+              </div>
             </div>
-          </form>
+          </div>
 
-          <div id="formResult" style="margin-top:12px; text-align:center; color:var(--muted); display:none;">
-            درخواست شما ثبت شد.
+          <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs font-semibold text-slate-500 sm:flex-row">
+            <div>© {new Date().getFullYear()} DekkaPost. All rights reserved.</div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border bg-slate-50 px-3 py-1">
+                <ShieldCheck className="h-4 w-4" />
+                طراحی فروش‌محور برای SEO + Leads
+              </span>
+            </div>
           </div>
         </div>
+      </footer>
+
+      {/* Floating actions (WhatsApp + Call) */}
+      <div className="fixed bottom-6 left-6 z-40 flex flex-col gap-3">
+        <a
+          href={LINKS.whatsapp}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-emerald-600 text-white shadow-lg hover:bg-emerald-700"
+          aria-label="WhatsApp"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </a>
+        <a
+          href="tel:0218457"
+          className="inline-flex h-14 w-14 items-center justify-center rounded-3xl border bg-white text-slate-900 shadow-lg hover:bg-slate-50"
+          aria-label="Call"
+        >
+          <Phone className="h-6 w-6" />
+        </a>
       </div>
-    </section>
-
-    <!-- PAGE: Contact -->
-    <section id="page-contact" class="page">
-      <div class="card contact section">
-        <h2>تماس با ما</h2>
-
-        <div class="kv">
-          <div class="kv-row">
-            <div class="k">ایمیل</div>
-            <div class="v">info@dekapost-gls.ir</div>
-          </div>
-          <div class="kv-row">
-            <div class="k">موبایل</div>
-            <div class="v">09116609590</div>
-          </div>
-          <div class="kv-row">
-            <div class="k">تلفن</div>
-            <div class="v">01341216064</div>
-          </div>
-        </div>
-
-        <div class="hr"></div>
-
-        <h2 style="margin-top:0;">آدرس ما</h2>
-        <p class="lead" style="max-width:none;text-align:right;">
-          لاهیجان، میدان دانشگاه آزاد، بلوار ۴۵ متری دانشگاه، میدان تربیت، نبش کوچه سوم دانشجو، دفتر نمایندگی سردار جنگل لاهیجان
-        </p>
-
-        <div class="hr"></div>
-
-        <h2 style="margin-top:0;">اینماد</h2>
-        <div class="enamad">
-          <div class="badge">eNAMAD</div>
-        </div>
-
-        <div class="footer-strip">
-          تمامی حقوق مادی و معنوی این وب‌سایت متعلق به دکا پست می‌باشد. طراحی توسط ... .
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Floating WhatsApp -->
-  <a class="fab" href="https://wa.me/989111449117" target="_blank" rel="noopener" aria-label="WhatsApp">
-    <span>WA</span>
-  </a>
-
-  <!-- Bottom Nav -->
-  <nav class="bottom-nav" aria-label="Bottom navigation">
-    <div class="nav-item active" data-tab="home">
-      <div class="nav-ico">⌂</div>
-      <div>دکا پست</div>
     </div>
-    <div class="nav-item" data-tab="contact">
-      <div class="nav-ico">☎</div>
-      <div>تماس با ما</div>
+  );
+}
+
+function FooterCol({ title, children }) {
+  return (
+    <div>
+      <div className="text-sm font-black">{title}</div>
+      <div className="mt-4 space-y-3">{children}</div>
     </div>
-    <div class="nav-item" data-tab="cooperate">
-      <div class="nav-ico">✉</div>
-      <div>همکاری با ما</div>
-    </div>
-    <div class="nav-item" data-tab="faq">
-      <div class="nav-ico">APP</div>
-      <div>اپلیکیشن</div>
-    </div>
-  </nav>
+  );
+}
 
-  <script>
-    /* Simple router for bottom nav */
-    const pages = {
-      home: document.getElementById('page-home'),
-      faq: document.getElementById('page-faq'),
-      cooperate: document.getElementById('page-cooperate'),
-      contact: document.getElementById('page-contact'),
-    };
-
-    function showPage(name){
-      Object.values(pages).forEach(p => p.classList.remove('active'));
-      pages[name].classList.add('active');
-
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-      document.querySelector(`.nav-item[data-tab="${name}"]`)?.classList.add('active');
-
-      window.scrollTo({top:0, behavior:'smooth'});
-    }
-
-    document.querySelectorAll('.nav-item').forEach(item=>{
-      item.addEventListener('click', ()=> showPage(item.dataset.tab));
-    });
-
-    document.querySelectorAll('[data-goto]').forEach(btn=>{
-      btn.addEventListener('click', ()=> showPage(btn.dataset.goto));
-    });
-
-    /* FAQ accordion */
-    document.querySelectorAll('#faqAcc .acc-item .acc-btn').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const item = btn.closest('.acc-item');
-        const open = item.classList.contains('open');
-        document.querySelectorAll('#faqAcc .acc-item').forEach(x=> x.classList.remove('open'));
-        if(!open) item.classList.add('open');
-      });
-    });
-
-    /* Carousel */
-    const items = Array.from(document.querySelectorAll('#carousel .item'));
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const dotsWrap = document.getElementById('dots');
-    let idx = 0;
-
-    function renderDots(){
-      dotsWrap.innerHTML = '';
-      items.forEach((_, i)=>{
-        const d = document.createElement('div');
-        d.className = 'dot' + (i===idx ? ' active':'');
-        d.addEventListener('click', ()=> { idx = i; renderCarousel(); });
-        dotsWrap.appendChild(d);
-      });
-    }
-
-    function renderCarousel(){
-      items.forEach(x=> x.classList.remove('active'));
-      items[idx].classList.add('active');
-      renderDots();
-    }
-    prevBtn.addEventListener('click', ()=>{
-      idx = (idx + 1) % items.length; // RTL: right arrow moves forward
-      renderCarousel();
-    });
-    nextBtn.addEventListener('click', ()=>{
-      idx = (idx - 1 + items.length) % items.length;
-      renderCarousel();
-    });
-    renderCarousel();
-
-    /* Form submit (demo) */
-    const form = document.getElementById('cooperateForm');
-    const result = document.getElementById('formResult');
-    form.addEventListener('submit', (e)=>{
-      e.preventDefault();
-      // TODO: send to backend (fetch/axios) - currently demo only
-      result.style.display = 'block';
-      result.textContent = 'درخواست شما ثبت شد. (دمو)';
-      form.reset();
-    });
-  </script>
-</body>
-</html>
+function FooterLink({ href, label }) {
+  return (
+    <a className="block text-sm font-semibold text-slate-600 hover:text-slate-900" href={href} target={href?.startsWith("http") ? "_blank" : undefined} rel={href?.startsWith("http") ? "noreferrer" : undefined}>
+      {label}
+    </a>
+  );
+}
