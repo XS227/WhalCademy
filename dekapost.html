@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DekkaPost – Directory</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.10/dist/tailwind.min.css"
+    />
+    <style>
+      body {
+        background: #f8fafc;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="module">
+      import React, { useEffect, useMemo, useState } from "https://esm.sh/react@18.2.0";
+      import { createRoot } from "https://esm.sh/react-dom@18.2.0/client";
+      import { motion, AnimatePresence } from "https://esm.sh/framer-motion@11.1.7";
+      import {
+        Search,
+        MapPin,
+        Phone,
+        Mail,
+        ExternalLink,
+        Calculator,
+        Truck,
+        Instagram,
+        MessageCircle,
+        Menu,
+        X,
+        ChevronDown,
+        Building2,
+        Globe,
+        ShieldCheck,
+        Sparkles,
+      } from "https://esm.sh/lucide-react@0.363.0";
+
+      /**
+       * DekkaPost — Departments / Branches Directory Page
+       * - RTL-first (Persian), but content can be mixed.
+       * - "Nord fylker" focused view + full Iran overview.
+       * - SEO/Leads hooks: hero, trust badges, CTAs, internal links.
+       * - Motion: Framer Motion for tasteful interactions.
+       *
+       * Integration note:
+       * Replace `fetchBranches()` to pull from your main source of truth.
+       */
+
+      // ---------------------------
+      // Links (as requested)
+      // ---------------------------
+      const LINKS = {
+        price: "https://price.dekapost.ir",
+        tracking: "https://tracking.dekapost.ir",
+        blog: "https://dekapost-gls.ir",
+        instagram: "https://instagram.com/dekapost_gls",
+        whatsapp: "https://wa.me/9891116609590",
+      };
+
+      // ---------------------------
+      // Sample data (replace with API)
+      // Provinces + Cities + Branches
+      // ---------------------------
+      const SAMPLE_BRANCHES = [
+        {
+          id: "gilan-lahijan",
+          province: "گیلان",
+          county: "لاهیجان",
+          city: "لاهیجان",
+          branchName: "نمایندگی دکا پست لاهیجان",
+          manager: "—",
+          phone: "09116609590",
+          tel: "01341216064",
+          email: "info@dekapost-gls.ir",
+          address:
+            "لاهیجان، میدان دانشگاه آزاد، بلوار ۴۵ متری دانشگاه، میدان تربیت، نبش کوچه سوم دانشجو، دفتر نمایندگی سردار جنگل لاهیجان",
+          hours: "۸ صبح تا ۲۰ شب",
+          services: ["ارسال بین‌شهری", "ارسال درون‌شهری", "پذیرش مرسولات فروشگاهی", "رهگیری مرسوله"],
+          tags: ["Nord", "پرفروش"],
+        },
+        {
+          id: "gilan-rasht",
+          province: "گیلان",
+          county: "رشت",
+          city: "رشت",
+          branchName: "نمایندگی رشت",
+          manager: "—",
+          phone: "—",
+          tel: "—",
+          email: "—",
+          address: "—",
+          hours: "—",
+          services: ["ارسال بین‌شهری", "پذیرش فروشگاهی"],
+          tags: ["Nord"],
+        },
+        {
+          id: "gilan-astara",
+          province: "گیلان",
+          county: "آستارا",
+          city: "آستارا",
+          branchName: "نمایندگی آستارا",
+          manager: "—",
+          phone: "—",
+          tel: "—",
+          email: "—",
+          address: "—",
+          hours: "—",
+          services: ["ارسال بین‌شهری"],
+          tags: ["Nord"],
+        },
+        {
+          id: "gilan-anzali",
+          province: "گیلان",
+          county: "انزلی",
+          city: "بندر انزلی",
+          branchName: "نمایندگی بندر انزلی",
+          manager: "—",
+          phone: "—",
+          tel: "—",
+          email: "—",
+          address: "—",
+          hours: "—",
+          services: ["ارسال بین‌شهری"],
+          tags: ["Nord"],
+        },
+        {
+          id: "gilan-fouman",
+          province: "گیلان",
+          county: "فومن",
+          city: "فومن",
+          branchName: "نمایندگی فومن",
+          manager: "—",
+          phone: "—",
+          tel: "—",
+          email: "—",
+          address: "—",
+          hours: "—",
+          services: ["ارسال درون‌شهری"],
+          tags: ["Nord"],
+        },
+        {
+          id: "maz-sari",
+          province: "مازندران",
+          county: "ساری",
+          city: "ساری",
+          branchName: "نمایندگی ساری",
+          manager: "—",
+          phone: "—",
+          tel: "—",
+          email: "—",
+          address: "—",
+          hours: "—",
+          services: ["ارسال بین‌شهری", "رهگیری"],
+          tags: ["Nord"],
+        },
+        {
+          id: "maz-chalus",
+          province: "مازندران",
+          county: "چالوس",
+          city: "چالوس",
+          branchName: "نمایندگی چالوس",
+          manager: "—",
+          phone: "—",
+          tel: "—",
+          email: "—",
+          address: "—",
+          hours: "—",
+          services: ["ارسال بین‌شهری"],
+          tags: ["Nord"],
+        },
+        {
+          id: "maz-ramsar",
+          province: "مازندران",
+          county: "رامسر",
+          city: "رامسر",
+          branchName: "نمایندگی رامسر",
+          manager: "—",
+          phone: "—",
+          tel: "—",
+          email: "—",
+          address: "—",
+          hours: "—",
+          services: ["ارسال بین‌شهری"],
+          tags: ["Nord"],
+        },
+        {
+          id: "gol-gorgan",
+          province: "گلستان",
+          county: "گرگان",
+          city: "گرگان",
+          branchName: "نمایندگی گرگان",
+          manager: "—",
+          phone: "—",
+          tel: "—",
+          email: "—",
+          address: "—",
+          hours: "—",
+          services: ["ارسال بین‌شهری"],
+          tags: ["Nord"],
+        },
+        {
+          id: "gol-gonbad",
+          province: "گلستان",
+          county: "گنبدکاووس",
+          city: "گنبدکاووس",
+          branchName: "نمایندگی گنبدکاووس",
+          manager: "—",
+          phone: "—",
+          tel: "—",
+          email: "—",
+          address: "—",
+          hours: "—",
+          services: ["ارسال بین‌شهری"],
+          tags: ["Nord"],
+        },
+        {
+          id: "tehran",
+          province: "تهران",
+          county: "تهران",
+          city: "تهران",
+          branchName: "نمایندگی تهران",
+          manager: "—",
+          phone: "—",
+          tel: "—",
+          email: "—",
+          address: "—",
+          hours: "—",
+          services: ["ارسال بین‌المللی", "فروشگاهی"],
+          tags: ["All"],
+        },
+      ];
+
+      async function fetchBranches() {
+        await new Promise((r) => setTimeout(r, 250));
+        return SAMPLE_BRANCHES;
+      }
+
+      function classNames(...xs) {
+        return xs.filter(Boolean).join(" ");
+      }
+
+      function Badge({ children }) {
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold">
+            <Sparkles className="h-3.5 w-3.5" />
+            {children}
+          </span>
+        );
+      }
+
+      function LinkButton({ href, icon: Icon, children, variant = "primary" }) {
+        const base =
+          "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold transition active:scale-[0.99]";
+        const styles =
+          variant === "primary"
+            ? "bg-emerald-600 text-white hover:bg-emerald-700"
+            : variant === "ghost"
+            ? "bg-white/10 text-white hover:bg-white/15"
+            : "bg-white text-emerald-800 hover:bg-emerald-50";
+        return (
+          <a className={classNames(base, styles)} href={href} target="_blank" rel="noreferrer">
+            {Icon ? <Icon className="h-4 w-4" /> : null}
+            {children}
+            <ExternalLink className="h-4 w-4 opacity-70" />
+          </a>
+        );
+      }
+
+      function SectionTitle({ title, subtitle }) {
+        return (
+          <div className="mx-auto max-w-4xl text-center">
+            <h2 className="text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
+            {subtitle ? <p className="mt-3 text-sm leading-7 text-slate-600">{subtitle}</p> : null}
+          </div>
+        );
+      }
+
+      function Chip({ children }) {
+        return (
+          <span className="inline-flex items-center rounded-full border bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+            {children}
+          </span>
+        );
+      }
+
+      function IconPill({ icon: Icon, label, value }) {
+        return (
+          <div className="flex items-center gap-3 rounded-2xl border bg-white px-4 py-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border bg-slate-50">
+              <Icon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-semibold text-slate-500">{label}</div>
+              <div className="truncate text-sm font-black text-slate-900">{value}</div>
+            </div>
+          </div>
+        );
+      }
+
+      function MegaMenu({ open, onClose }) {
+        return (
+          <AnimatePresence>
+            {open ? (
+              <motion.div
+                className="fixed inset-0 z-50"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div className="absolute inset-0 bg-emerald-900" />
+
+                <div className="relative mx-auto max-w-6xl px-6 py-8 text-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/15 bg-white/10 font-black">
+                        DK
+                      </div>
+                      <div>
+                        <div className="text-sm font-black">DekkaPost</div>
+                        <div className="text-xs text-white/70">منوی دسترسی سریع و صفحات کلیدی</div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={onClose}
+                      className="rounded-2xl border border-white/15 bg-white/10 p-3 hover:bg-white/15"
+                      aria-label="close"
+                    >
+                      <X className="h-6 w-6" />
+                    </button>
+                  </div>
+
+                  <div className="mt-10 grid grid-cols-1 gap-10 md:grid-cols-5">
+                    <div className="space-y-3">
+                      <div className="text-sm font-black">درباره ما</div>
+                      <MenuLink title="سخن مدیرعامل" />
+                      <MenuLink title="معرفی مدیران" />
+                      <MenuLink title="مسئولیت‌های اجتماعی" />
+                      <MenuLink title="تماس با ما" />
+                      <MenuLink title="گالری" />
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="text-sm font-black">خدمات</div>
+                      <MenuLink title="ارسال درون‌شهری" />
+                      <MenuLink title="ارسال بین‌شهری" />
+                      <MenuLink title="ارسال بین‌الملل" />
+                      <MenuLink title="باکس‌لاین" />
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="text-sm font-black">خدمات تکمیلی</div>
+                      <MenuLink title="بسته‌بندی" />
+                      <MenuLink title="لاکر هوشمند" />
+                      <MenuLink title="پرداخت در محل" />
+                      <MenuLink title="پس‌کرایه" />
+                      <MenuLink title="جبران خسارت" />
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="text-sm font-black">ثبت و پیگیری شکایت</div>
+                      <MenuLink title="ثبت شکایت" />
+                      <MenuLink title="ارسال مستندات" />
+                      <MenuLink title="پیگیری شکایت" />
+                      <MenuLink title="تاییدیه مبلغ جبران" />
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="text-sm font-black">قوانین و راهنما</div>
+                      <MenuLink title="ویدیوهای آموزشی" />
+                      <MenuLink title="سوالات متداول" />
+                      <MenuLink title="قوانین و مقررات" />
+                      <MenuLink title="ممنوعات ارسال" />
+                      <MenuLink title="حریم خصوصی" />
+                    </div>
+                  </div>
+
+                  <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+                    <div className="rounded-3xl border border-white/15 bg-white/10 p-6">
+                      <div className="text-sm font-black">دسترسی سریع</div>
+                      <div className="mt-3 flex flex-wrap gap-3">
+                        <a
+                          className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-emerald-900"
+                          href={LINKS.tracking}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          رهگیری مرسوله
+                        </a>
+                        <a
+                          className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-emerald-900"
+                          href={LINKS.price}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          محاسبه قیمت
+                        </a>
+                        <a
+                          className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-emerald-900"
+                          href={LINKS.blog}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          وبلاگ
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="rounded-3xl border border-white/15 bg-white/10 p-6">
+                      <div className="text-sm font-black">تماس</div>
+                      <div className="mt-3 space-y-2 text-sm text-white/85">
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4" /> 021-8457
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MessageCircle className="h-4 w-4" /> واتساپ: 0911xxxxxxx
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-3xl border border-white/15 bg-white/10 p-6">
+                      <div className="text-sm font-black">شبکه‌های اجتماعی</div>
+                      <div className="mt-3 flex items-center gap-3">
+                        <a
+                          className="rounded-2xl border border-white/15 bg-white/10 p-3 hover:bg-white/15"
+                          href={LINKS.instagram}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="instagram"
+                        >
+                          <Instagram className="h-5 w-5" />
+                        </a>
+                        <a
+                          className="rounded-2xl border border-white/15 bg-white/10 p-3 hover:bg-white/15"
+                          href={LINKS.whatsapp}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="whatsapp"
+                        >
+                          <MessageCircle className="h-5 w-5" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        );
+      }
+
+      function MenuLink({ title }) {
+        return (
+          <a
+            className="block rounded-2xl px-3 py-2 text-sm font-semibold text-white/85 hover:bg-white/10 hover:text-white"
+            href="#"
+          >
+            {title}
+          </a>
+        );
+      }
+
+      function BranchCard({ b }) {
+        return (
+          <motion.div
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+            className="group rounded-3xl border bg-white p-5 shadow-sm hover:shadow-md"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="truncate text-base font-black">{b.branchName}</h3>
+                  {b.tags?.includes("پرفروش") ? <Badge>پرفروش</Badge> : null}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Chip>{b.province}</Chip>
+                  <Chip>{b.county}</Chip>
+                  <Chip>{b.city}</Chip>
+                </div>
+              </div>
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-3xl border bg-slate-50">
+                <Building2 className="h-6 w-6" />
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <IconPill icon={MapPin} label="آدرس" value={b.address || "—"} />
+              <IconPill icon={Phone} label="تلفن" value={b.phone && b.phone !== "—" ? b.phone : b.tel || "—"} />
+              <IconPill icon={Mail} label="ایمیل" value={b.email || "—"} />
+              <IconPill icon={ShieldCheck} label="ساعت کاری" value={b.hours || "—"} />
+            </div>
+
+            <div className="mt-4">
+              <div className="text-xs font-bold text-slate-500">خدمات</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {(b.services || []).slice(0, 6).map((s) => (
+                  <span
+                    key={s}
+                    className="rounded-2xl border bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <a
+                className="inline-flex items-center gap-2 rounded-2xl border bg-white px-4 py-2 text-sm font-black text-slate-900 hover:bg-slate-50"
+                href={LINKS.tracking}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Truck className="h-4 w-4" /> رهگیری
+              </a>
+              <a
+                className="inline-flex items-center gap-2 rounded-2xl border bg-white px-4 py-2 text-sm font-black text-slate-900 hover:bg-slate-50"
+                href={LINKS.price}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Calculator className="h-4 w-4" /> محاسبه قیمت
+              </a>
+              <a
+                className="inline-flex items-center gap-2 rounded-2xl border bg-emerald-600 px-4 py-2 text-sm font-black text-white hover:bg-emerald-700"
+                href={LINKS.whatsapp}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <MessageCircle className="h-4 w-4" /> واتساپ
+              </a>
+            </div>
+          </motion.div>
+        );
+      }
+
+      function ProvinceAccordion({ province, branches }) {
+        const [open, setOpen] = useState(false);
+        return (
+          <div className="rounded-3xl border bg-white shadow-sm">
+            <button onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between gap-4 p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-3xl border bg-slate-50">
+                  <Globe className="h-5 w-5" />
+                </div>
+                <div className="text-right">
+                  <div className="text-base font-black">{province}</div>
+                  <div className="text-xs font-semibold text-slate-500">{branches.length} نمایندگی</div>
+                </div>
+              </div>
+              <ChevronDown className={classNames("h-5 w-5 transition", open ? "rotate-180" : "")} />
+            </button>
+
+            <AnimatePresence initial={false}>
+              {open ? (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid gap-4 p-5 pt-0 sm:grid-cols-2">
+                    {branches.map((b) => (
+                      <BranchCard key={b.id} b={b} />
+                    ))}
+                  </div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
+        );
+      }
+
+      function DekkaPostNordDirectory() {
+        const [menuOpen, setMenuOpen] = useState(false);
+        const [loading, setLoading] = useState(true);
+        const [branches, setBranches] = useState([]);
+        const [q, setQ] = useState("");
+        const [scope, setScope] = useState("north");
+
+        useEffect(() => {
+          let mounted = true;
+          (async () => {
+            setLoading(true);
+            const data = await fetchBranches();
+            if (!mounted) return;
+            setBranches(data);
+            setLoading(false);
+          })();
+          return () => (mounted = false);
+        }, []);
+
+        const northProvinces = useMemo(() => new Set(["گیلان", "مازندران", "گلستان"]), []);
+
+        const scopedBranches = useMemo(() => {
+          const base = scope === "north" ? branches.filter((b) => northProvinces.has(b.province)) : branches;
+          const term = q.trim();
+          if (!term) return base;
+          const t = term.toLowerCase();
+          return base.filter((b) =>
+            [b.branchName, b.province, b.county, b.city, b.address]
+              .filter(Boolean)
+              .some((x) => String(x).toLowerCase().includes(t))
+          );
+        }, [branches, q, scope, northProvinces]);
+
+        const groupedByProvince = useMemo(() => {
+          const map = new Map();
+          for (const b of scopedBranches) {
+            const key = b.province || "—";
+            if (!map.has(key)) map.set(key, []);
+            map.get(key).push(b);
+          }
+          return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0], "fa"));
+        }, [scopedBranches]);
+
+        const totalCount = scopedBranches.length;
+
+        return (
+          <div dir="rtl" className="min-h-screen bg-slate-50 text-slate-900">
+            <MegaMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+
+            <header className="sticky top-0 z-40 border-b bg-white/85 backdrop-blur">
+              <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-3xl border bg-slate-50 font-black">
+                    DK
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-black">DekkaPost — نمایندگی‌ها</div>
+                    <div className="truncate text-xs font-semibold text-slate-500">
+                      طراحی فروش‌محور برای لید، سئو و تجربه کاربری
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <a
+                    className="hidden rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50 md:inline-flex"
+                    href={LINKS.blog}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    وبلاگ
+                  </a>
+                  <a
+                    className="hidden rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50 md:inline-flex"
+                    href={LINKS.tracking}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    رهگیری
+                  </a>
+                  <a
+                    className="hidden rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50 md:inline-flex"
+                    href={LINKS.price}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    محاسبه قیمت
+                  </a>
+
+                  <button
+                    onClick={() => setMenuOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50"
+                  >
+                    <Menu className="h-5 w-5" />
+                    منو
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            <section className="relative overflow-hidden">
+              <div className="absolute inset-0 bg-emerald-900" />
+              <div
+                className="absolute inset-0 opacity-35"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(circle at 20% 20%, rgba(255,255,255,.25), transparent 40%), radial-gradient(circle at 80% 30%, rgba(255,255,255,.18), transparent 35%), radial-gradient(circle at 50% 85%, rgba(255,255,255,.12), transparent 45%)",
+                }}
+              />
+
+              <div className="relative mx-auto max-w-6xl px-6 py-12 text-white sm:py-16">
+                <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
+                  <div className="max-w-2xl">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold">
+                      <Sparkles className="h-4 w-4" />
+                      صفحه نمایندگی‌های دکا پست — تمرکز روی شمال کشور
+                    </div>
+                    <h1 className="mt-4 text-3xl font-black leading-tight sm:text-4xl">
+                      دسترسی سریع به اطلاعات نمایندگی‌ها در ایران
+                    </h1>
+                    <p className="mt-4 text-sm leading-7 text-white/85">
+                      این صفحه برای سئو و لید طراحی شده: مسیر سریع برای رهگیری، محاسبه قیمت، تماس واتساپ و پیدا کردن نزدیک‌ترین نمایندگی در
+                      استان‌ها و شهرستان‌ها.
+                    </p>
+
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <LinkButton href={LINKS.tracking} icon={Truck} variant="primary">
+                        رهگیری مرسوله
+                      </LinkButton>
+                      <LinkButton href={LINKS.price} icon={Calculator} variant="light">
+                        محاسبه قیمت
+                      </LinkButton>
+                      <LinkButton href={LINKS.blog} icon={ExternalLink} variant="ghost">
+                        بلاگ
+                      </LinkButton>
+                      <LinkButton href={LINKS.instagram} icon={Instagram} variant="ghost">
+                        اینستاگرام @dekapost_gls
+                      </LinkButton>
+                    </div>
+                  </div>
+
+                  <div className="grid w-full max-w-xl gap-3 sm:grid-cols-2">
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-3xl border border-white/15 bg-white/10 p-5"
+                    >
+                      <div className="text-xs font-bold text-white/75">نمایندگی‌ها</div>
+                      <div className="mt-1 text-3xl font-black">{loading ? "…" : totalCount}</div>
+                      <div className="mt-2 text-xs text-white/75">در محدوده انتخابی</div>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.05 }}
+                      className="rounded-3xl border border-white/15 bg-white/10 p-5"
+                    >
+                      <div className="text-xs font-bold text-white/75">لید سریع</div>
+                      <div className="mt-1 text-base font-black">واتساپ و تماس مستقیم</div>
+                      <div className="mt-2 text-xs text-white/75">CTA همیشه در دسترس</div>
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="mx-auto max-w-6xl px-6 py-10">
+              <SectionTitle
+                title={scope === "north" ? "نمایندگی‌های شمال کشور" : "همه نمایندگی‌ها در ایران"}
+                subtitle="استان → شهرستان/شهر → اطلاعات نمایندگی. برای سرچ سریع نام شهر/شهرستان را وارد کنید."
+              />
+
+              <div className="mt-8 grid gap-4 md:grid-cols-12">
+                <div className="md:col-span-7">
+                  <div className="flex items-center gap-3 rounded-3xl border bg-white px-4 py-3 shadow-sm">
+                    <Search className="h-5 w-5 text-slate-500" />
+                    <input
+                      value={q}
+                      onChange={(e) => setQ(e.target.value)}
+                      placeholder="جستجو: استان، شهرستان، شهر، نام نمایندگی یا آدرس…"
+                      className="w-full bg-transparent text-sm font-semibold outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="md:col-span-5">
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setScope("north")}
+                      className={classNames(
+                        "rounded-3xl border px-4 py-3 text-sm font-black shadow-sm",
+                        scope === "north" ? "bg-emerald-600 text-white" : "bg-white hover:bg-slate-50"
+                      )}
+                    >
+                      Nord fylker
+                    </button>
+                    <button
+                      onClick={() => setScope("all")}
+                      className={classNames(
+                        "rounded-3xl border px-4 py-3 text-sm font-black shadow-sm",
+                        scope === "all" ? "bg-emerald-600 text-white" : "bg-white hover:bg-slate-50"
+                      )}
+                    >
+                      کل ایران
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8">
+                {loading ? (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="h-56 animate-pulse rounded-3xl border bg-white" />
+                    ))}
+                  </div>
+                ) : groupedByProvince.length === 0 ? (
+                  <div className="rounded-3xl border bg-white p-8 text-center shadow-sm">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-3xl border bg-slate-50">
+                      <Search className="h-6 w-6" />
+                    </div>
+                    <div className="mt-3 text-base font-black">نتیجه‌ای یافت نشد</div>
+                    <div className="mt-2 text-sm text-slate-600">
+                      عبارت جستجو را تغییر دهید یا محدوده را روی «کل ایران» قرار دهید.
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {groupedByProvince.map(([province, bs]) => (
+                      <ProvinceAccordion key={province} province={province} branches={bs} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-10 rounded-3xl border bg-white p-6 shadow-sm">
+                <div className="grid gap-6 md:grid-cols-3 md:items-center">
+                  <div className="md:col-span-2">
+                    <div className="inline-flex items-center gap-2 rounded-full border bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">
+                      <ShieldCheck className="h-4 w-4" />
+                      مسیر سریع برای مشتریان فروشگاهی
+                    </div>
+                    <div className="mt-3 text-xl font-black">برای ارسال روزانه بسته‌ها، همین الان شروع کنید</div>
+                    <div className="mt-2 text-sm leading-7 text-slate-600">
+                      اگر فروشگاه دارید، از محاسبه قیمت شروع کنید، سپس نزدیک‌ترین نمایندگی را پیدا کنید. رهگیری هم همیشه در دسترس است.
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <a
+                      className="rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white hover:bg-emerald-700"
+                      href={LINKS.price}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      محاسبه قیمت
+                    </a>
+                    <a
+                      className="rounded-2xl border bg-white px-4 py-3 text-center text-sm font-black hover:bg-slate-50"
+                      href={LINKS.tracking}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      رهگیری مرسوله
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <footer className="border-t bg-white">
+              <div className="mx-auto max-w-6xl px-6 py-12">
+                <div className="grid gap-10 md:grid-cols-12">
+                  <div className="md:col-span-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-3xl border bg-slate-50 font-black">
+                        DK
+                      </div>
+                      <div>
+                        <div className="text-sm font-black">DekkaPost</div>
+                        <div className="text-xs font-semibold text-slate-500">شبکه ارسال مرسولات — طراحی برای رشد</div>
+                      </div>
+                    </div>
+
+                    <p className="mt-4 text-sm leading-7 text-slate-600">
+                      دسترسی مستقیم به محاسبه قیمت، رهگیری، وبلاگ و شبکه‌های اجتماعی. این ساختار برای سئو (صفحات استان/شهرستان) و تبدیل لید
+                      طراحی شده است.
+                    </p>
+
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <a
+                        className="rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50"
+                        href={LINKS.blog}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        وبلاگ
+                      </a>
+                      <a
+                        className="rounded-2xl border bg-white px-4 py-2 text-sm font-black hover:bg-slate-50"
+                        href={LINKS.instagram}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        اینستاگرام
+                      </a>
+                      <a
+                        className="rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-black text-white hover:bg-emerald-700"
+                        href={LINKS.whatsapp}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        واتساپ
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-8">
+                    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                      <FooterCol title="دسترسی سریع">
+                        <FooterLink href={LINKS.tracking} label="رهگیری مرسوله" />
+                        <FooterLink href={LINKS.price} label="محاسبه قیمت" />
+                        <FooterLink href={LINKS.blog} label="وبلاگ" />
+                        <FooterLink href="#" label="نمایندگی‌ها" />
+                      </FooterCol>
+
+                      <FooterCol title="خدمات">
+                        <FooterLink href="#" label="ارسال درون‌شهری" />
+                        <FooterLink href="#" label="ارسال بین‌شهری" />
+                        <FooterLink href="#" label="ارسال بین‌المللی" />
+                        <FooterLink href="#" label="بسته‌بندی" />
+                      </FooterCol>
+
+                      <FooterCol title="مشتریان فروشگاهی">
+                        <FooterLink href="#" label="درخواست همکاری" />
+                        <FooterLink href="#" label="سوالات متداول" />
+                        <FooterLink href="#" label="قوانین و مقررات" />
+                        <FooterLink href="#" label="جبران خسارت" />
+                      </FooterCol>
+
+                      <FooterCol title="ارتباط با ما">
+                        <FooterLink href={LINKS.whatsapp} label="واتساپ" />
+                        <FooterLink href={LINKS.instagram} label="@dekapost_gls" />
+                        <FooterLink href="#" label="تماس" />
+                        <FooterLink href="#" label="آدرس‌ها" />
+                      </FooterCol>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs font-semibold text-slate-500 sm:flex-row">
+                  <div>© {new Date().getFullYear()} DekkaPost. All rights reserved.</div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-2 rounded-full border bg-slate-50 px-3 py-1">
+                      <ShieldCheck className="h-4 w-4" />
+                      طراحی فروش‌محور برای SEO + Leads
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </footer>
+
+            <div className="fixed bottom-6 left-6 z-40 flex flex-col gap-3">
+              <a
+                href={LINKS.whatsapp}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-emerald-600 text-white shadow-lg hover:bg-emerald-700"
+                aria-label="WhatsApp"
+              >
+                <MessageCircle className="h-6 w-6" />
+              </a>
+              <a
+                href="tel:0218457"
+                className="inline-flex h-14 w-14 items-center justify-center rounded-3xl border bg-white text-slate-900 shadow-lg hover:bg-slate-50"
+                aria-label="Call"
+              >
+                <Phone className="h-6 w-6" />
+              </a>
+            </div>
+          </div>
+        );
+      }
+
+      function FooterCol({ title, children }) {
+        return (
+          <div>
+            <div className="text-sm font-black">{title}</div>
+            <div className="mt-4 space-y-3">{children}</div>
+          </div>
+        );
+      }
+
+      function FooterLink({ href, label }) {
+        return (
+          <a
+            className="block text-sm font-semibold text-slate-600 hover:text-slate-900"
+            href={href}
+            target={href?.startsWith("http") ? "_blank" : undefined}
+            rel={href?.startsWith("http") ? "noreferrer" : undefined}
+          >
+            {label}
+          </a>
+        );
+      }
+
+      const root = createRoot(document.getElementById("app"));
+      root.render(<DekkaPostNordDirectory />);
+    </script>
+  </body>
+</html>
